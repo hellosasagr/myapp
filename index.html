@@ -1,0 +1,495 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tạo Truyện Từ Vựng Tiếng Anh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Merriweather:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="panel app-header">
+        <p class="eyebrow">English Story Lab</p>
+        <h1>Tạo truyện từ vựng + luyện học thông minh</h1>
+        <p class="lead">
+          Nhập danh sách từ vựng tiếng Anh, hệ thống sẽ tạo truyện chứa đầy đủ từ,
+          rồi hỗ trợ đọc, dịch, luyện tập và ghi nhớ theo ngữ cảnh.
+        </p>
+      </header>
+
+      <div class="workspace-grid">
+        <section class="panel control-panel">
+          <div class="section-head">
+            <h2>1) Tạo truyện</h2>
+            <button
+              class="btn help-toggle"
+              type="button"
+              data-target="helpCreate"
+              aria-expanded="false"
+            >
+              Hướng dẫn
+            </button>
+          </div>
+          <p id="helpCreate" class="help-panel hidden">
+            Nhập từ vựng bằng dấu phẩy, chấm phẩy hoặc xuống dòng. Chọn thể loại,
+            độ dài rồi bấm <strong>Tạo truyện</strong>.
+          </p>
+
+          <label for="vocabInput">Danh sách từ vựng</label>
+          <textarea
+            id="vocabInput"
+            placeholder="Ví dụ: brave, lantern, whisper, canyon, compass"
+            rows="8"
+          ></textarea>
+          <p class="hint">Hỗ trợ tách từ bằng dấu phẩy, chấm phẩy, xuống dòng.</p>
+
+          <div class="control">
+            <p class="label-title">Thể loại truyện</p>
+            <div class="genre-picker" id="genrePicker">
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="adventure" checked />
+                <span class="genre-name">Phiêu lưu</span>
+                <span class="genre-desc">Hành trình, thử thách, khám phá</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="mystery" />
+                <span class="genre-name">Bí ẩn</span>
+                <span class="genre-desc">Điều tra, manh mối, sự thật</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="school" />
+                <span class="genre-name">Học đường</span>
+                <span class="genre-desc">Lớp học, bạn bè, dự án</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="scifi" />
+                <span class="genre-name">Khoa học viễn tưởng</span>
+                <span class="genre-desc">Công nghệ, vũ trụ, hệ thống</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="fantasy" />
+                <span class="genre-name">Giả tưởng</span>
+                <span class="genre-desc">Phép thuật, thế giới mới, cổ vật</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="romance" />
+                <span class="genre-name">Lãng mạn</span>
+                <span class="genre-desc">Cảm xúc, mối quan hệ, lựa chọn</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="comedy" />
+                <span class="genre-name">Hài hước</span>
+                <span class="genre-desc">Tình huống vui, đối thoại dí dỏm</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="historical" />
+                <span class="genre-name">Lịch sử</span>
+                <span class="genre-desc">Bối cảnh xưa, sự kiện, tư liệu</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="business" />
+                <span class="genre-name">Công sở</span>
+                <span class="genre-desc">Dự án, họp nhóm, quyết định</span>
+              </label>
+              <label class="genre-card">
+                <input type="radio" name="storyTone" value="survival" />
+                <span class="genre-name">Sinh tồn</span>
+                <span class="genre-desc">Khắc nghiệt, chiến lược, thoát hiểm</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="control">
+            <label for="storyLength">Độ dài truyện</label>
+            <select id="storyLength">
+              <option value="short">Ngắn</option>
+              <option value="medium" selected>Vừa</option>
+              <option value="long">Dài</option>
+            </select>
+          </div>
+
+          <div class="btn-row">
+            <button id="generateBtn" class="btn primary" type="button">Tạo truyện</button>
+            <button id="clearBtn" class="btn ghost" type="button">Xóa</button>
+          </div>
+        </section>
+
+        <section class="panel story-panel">
+          <div class="section-head">
+            <h2>2) Khu truyện</h2>
+          </div>
+
+          <div class="subsection">
+            <div class="section-head mini">
+              <h3>Điều khiển đọc</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpRead"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpRead" class="help-panel hidden">
+              Bấm <strong>Đọc</strong> để đọc toàn bộ truyện. Có thể tạm dừng,
+              tiếp tục, dừng, chọn giọng đọc, tốc độ, đặt điểm A/B và lặp đoạn.
+            </p>
+
+            <div class="btn-row small">
+              <button id="readStoryBtn" class="btn ghost" type="button">Đọc</button>
+              <button id="pauseReadBtn" class="btn ghost" type="button">Tạm dừng</button>
+              <button id="resumeReadBtn" class="btn ghost" type="button">Tiếp tục</button>
+              <button id="stopReadBtn" class="btn ghost" type="button">Dừng</button>
+              <select id="readSpeed" aria-label="Tốc độ đọc">
+                <option value="0.9">Chậm</option>
+                <option value="1" selected>Bình thường</option>
+                <option value="1.15">Nhanh</option>
+              </select>
+            </div>
+
+            <div class="read-tools">
+              <label class="read-tools-label" for="readVoice">Giọng đọc</label>
+              <div class="read-tools-row">
+                <select id="readVoice" aria-label="Giọng đọc"></select>
+                <button id="readFromSelectedBtn" class="btn ghost" type="button">
+                  Đọc từ câu đã chọn
+                </button>
+                <button id="resumeLastBtn" class="btn ghost" type="button">
+                  Tiếp tục lần trước
+                </button>
+              </div>
+              <div class="read-tools-row">
+                <button id="setRepeatStartBtn" class="btn ghost" type="button">Đặt A</button>
+                <button id="setRepeatEndBtn" class="btn ghost" type="button">Đặt B</button>
+                <button id="toggleRepeatBtn" class="btn ghost" type="button">Bật AB Repeat</button>
+                <button id="clearRepeatBtn" class="btn ghost" type="button">Xóa AB</button>
+              </div>
+              <div class="read-tools-row">
+                <button id="prevSentenceBtn" class="btn ghost" type="button">Lùi 1 câu</button>
+                <button id="nextSentenceBtn" class="btn ghost" type="button">Tiến 1 câu</button>
+                <select id="repeatLoopCount" aria-label="Số vòng lặp AB">
+                  <option value="0" selected>AB vô hạn</option>
+                  <option value="3">AB 3 vòng</option>
+                  <option value="5">AB 5 vòng</option>
+                  <option value="10">AB 10 vòng</option>
+                </select>
+              </div>
+              <p id="repeatStatus" class="hint">AB Repeat: Tắt</p>
+              <p id="repeatLoopStatus" class="hint">Vòng lặp AB: 0</p>
+              <div class="read-progress">
+                <progress id="readProgress" max="100" value="0"></progress>
+                <p id="readProgressText" class="hint">Tiến độ đọc: 0%</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="section-head mini">
+              <h3>Lưu / xuất truyện</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpSave"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpSave" class="help-panel hidden">
+              Đặt tên truyện rồi lưu vào Tủ sách. Bạn cũng có thể copy nhanh hoặc tải file `.txt`.
+            </p>
+
+            <div class="btn-row small">
+              <button id="copyBtn" class="btn ghost" type="button">Copy</button>
+              <button id="downloadBtn" class="btn ghost" type="button">Tải .txt</button>
+            </div>
+
+            <div class="save-row">
+              <label for="storyTitle">Tên truyện</label>
+              <div class="save-controls">
+                <input
+                  id="storyTitle"
+                  type="text"
+                  placeholder="Đặt tên truyện để lưu vào tủ sách"
+                />
+                <button id="saveStoryBtn" class="btn primary" type="button">Lưu vào tủ sách</button>
+              </div>
+            </div>
+          </div>
+
+          <article id="storyOutput" class="story-output empty">
+            Câu chuyện được tạo sẽ xuất hiện ở đây.
+          </article>
+
+          <div class="section-head mini no-margin">
+            <h3>Dịch nhanh theo ngữ cảnh</h3>
+            <button
+              class="btn help-toggle"
+              type="button"
+              data-target="helpTranslate"
+              aria-expanded="false"
+            >
+              Hướng dẫn
+            </button>
+          </div>
+          <p id="helpTranslate" class="help-panel hidden">
+            Rê chuột lên từ được tô để xem nghĩa. Bôi đen cụm/câu để hiện bản dịch tiếng Việt.
+          </p>
+
+          <div class="analysis">
+            <div class="section-head mini">
+              <h3>Mẫu câu (Modelling)</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpModel"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpModel" class="help-panel hidden">
+              Rê chuột vào một câu trong truyện, sau đó bấm <strong>Phân tích câu đang rê</strong>.
+              Hệ thống sẽ đưa công thức câu và gợi ý thay từ để tạo câu mới cùng cấu trúc.
+            </p>
+            <p id="sentenceModelHint" class="hint">
+              Rê chuột vào 1 câu để bắt đầu phân tích mẫu câu.
+            </p>
+            <div class="btn-row small">
+              <button id="analyzeHoveredSentenceBtn" class="btn ghost" type="button" disabled>
+                Phân tích câu đang rê
+              </button>
+              <button id="clearSentenceModelBtn" class="btn ghost" type="button">
+                Xóa phân tích
+              </button>
+            </div>
+            <article id="sentenceModelOutput" class="story-output empty">
+              Kết quả phân tích cấu trúc câu sẽ hiển thị ở đây.
+            </article>
+          </div>
+
+          <div class="analysis">
+            <div class="section-head mini">
+              <h3>Độ bao phủ từ vựng</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpCoverage"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpCoverage" class="help-panel hidden">
+              Bảng này cho biết từ nào đã xuất hiện trong truyện, từ nào còn thiếu để bạn điều chỉnh.
+            </p>
+            <p id="coverageSummary" class="hint">Chưa tạo truyện.</p>
+            <ul id="coverageList" class="coverage-list"></ul>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel learning-panel">
+        <div class="section-head">
+          <h2>3) Khối luyện tập</h2>
+          <button
+            class="btn help-toggle"
+            type="button"
+            data-target="helpLearning"
+            aria-expanded="false"
+          >
+            Hướng dẫn
+          </button>
+        </div>
+        <p id="helpLearning" class="help-panel hidden">
+          Gợi ý: tạo truyện -> luyện tập toàn bộ câu chuyện -> nghe chép toàn bộ câu để tăng phản xạ.
+        </p>
+
+        <div class="module-grid">
+          <div class="analysis practice-block module-card">
+            <div class="section-head mini">
+              <h3>Luyện tập</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpPractice"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpPractice" class="help-panel hidden">
+              Chọn dạng bài, bấm <strong>Tạo bài luyện</strong>. Hệ thống sẽ tạo bài cho toàn bộ câu chuyện.
+            </p>
+            <div class="btn-row small">
+              <select id="practiceType" aria-label="Dạng bài tập">
+                <option value="fill_blank" selected>Điền từ</option>
+                <option value="multiple_choice">Trắc nghiệm</option>
+                <option value="true_false">Đúng/Sai</option>
+              </select>
+              <select id="practiceCount" aria-label="Số câu bài tập">
+                <option value="9999" selected>Toàn bộ câu chuyện</option>
+              </select>
+              <button id="buildPracticeBtn" class="btn ghost" type="button">Tạo bài luyện</button>
+              <button id="checkPracticeBtn" class="btn ghost" type="button">Chấm điểm</button>
+              <button id="resetPracticeBtn" class="btn ghost" type="button">Làm lại</button>
+            </div>
+            <p id="practiceSummary" class="hint">Tạo truyện xong rồi bấm "Tạo bài luyện" để luyện từ vựng.</p>
+            <ol id="practiceList" class="practice-list"></ol>
+          </div>
+
+          <div class="analysis memory-block module-card hidden">
+            <div class="section-head mini">
+              <h3>Nhớ nhanh</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpMemory"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpMemory" class="help-panel hidden">
+              Bấm <strong>Bắt đầu</strong>, tự nhớ nghĩa và ngữ cảnh. Bấm <strong>Hiện gợi ý</strong> để kiểm tra.
+            </p>
+            <div class="btn-row small">
+              <button id="startMemoryBtn" class="btn ghost" type="button">Bắt đầu</button>
+              <button id="revealMemoryBtn" class="btn ghost" type="button">Hiện gợi ý</button>
+            </div>
+            <p id="memorySummary" class="hint">Chế độ này lặp lại từ + câu ngữ cảnh đến khi bạn nhớ.</p>
+            <article id="memoryCard" class="story-output empty">Bắt đầu Memory để ôn lại từ vựng.</article>
+            <div class="btn-row small">
+              <button id="memoryKnownBtn" class="btn ghost" type="button">Nhớ rồi</button>
+              <button id="memoryAgainBtn" class="btn ghost" type="button">Chưa nhớ</button>
+            </div>
+            <p id="memoryHint" class="hint"></p>
+          </div>
+
+          <div class="analysis dictation-block module-card">
+            <div class="section-head mini">
+              <h3>Nghe chép</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpDictation"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpDictation" class="help-panel hidden">
+              Tạo bộ nghe chép từ toàn bộ câu chuyện, bấm phát câu rồi gõ lại chính xác. Hệ thống sẽ chấm độ đúng.
+            </p>
+            <div class="btn-row small">
+              <button id="buildDictationBtn" class="btn ghost" type="button">Tạo bộ nghe chép</button>
+              <button id="playDictationBtn" class="btn ghost" type="button">Phát câu</button>
+            </div>
+            <p id="dictationSummary" class="hint">Chưa tạo bộ nghe chép.</p>
+            <p id="dictationPrompt" class="hint">Câu 0/0</p>
+            <textarea
+              id="dictationInput"
+              rows="3"
+              placeholder="Nghe xong thì gõ lại câu tiếng Anh bạn vừa nghe"
+            ></textarea>
+            <div class="btn-row small">
+              <button id="checkDictationBtn" class="btn ghost" type="button">Chấm câu</button>
+              <button id="showDictationAnswerBtn" class="btn ghost" type="button">Xem đáp án</button>
+              <button id="prevDictationBtn" class="btn ghost" type="button">Câu trước</button>
+              <button id="nextDictationBtn" class="btn ghost" type="button">Câu sau</button>
+            </div>
+            <p id="dictationResult" class="hint"></p>
+          </div>
+
+          <div class="analysis flashcard-block module-card hidden">
+            <div class="section-head mini">
+              <h3>Flashcard</h3>
+              <button
+                class="btn help-toggle"
+                type="button"
+                data-target="helpFlashcard"
+                aria-expanded="false"
+              >
+                Hướng dẫn
+              </button>
+            </div>
+            <p id="helpFlashcard" class="help-panel hidden">
+              Tạo/cập nhật thẻ từ, bấm hiện nghĩa rồi tự đánh giá mức độ nhớ: Khó, Vừa, Dễ.
+            </p>
+            <div class="btn-row small">
+              <button id="seedFlashcardsBtn" class="btn ghost" type="button">Tạo/Cập nhật thẻ</button>
+              <button id="startFlashcardBtn" class="btn ghost" type="button">Bắt đầu ôn</button>
+            </div>
+            <p id="flashcardSummary" class="hint">Chưa có thẻ nào.</p>
+            <article id="flashcardCard" class="story-output empty">Từ sẽ xuất hiện ở đây.</article>
+            <div class="btn-row small">
+              <button id="revealFlashcardBtn" class="btn ghost" type="button">Hiện nghĩa</button>
+              <button id="rateHardBtn" class="btn ghost" type="button">Khó</button>
+              <button id="rateGoodBtn" class="btn ghost" type="button">Vừa</button>
+              <button id="rateEasyBtn" class="btn ghost" type="button">Dễ</button>
+            </div>
+            <p id="flashcardMeaning" class="hint"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel shelf-panel">
+        <div class="section-head">
+          <h2>4) Tủ sách</h2>
+          <button
+            class="btn help-toggle"
+            type="button"
+            data-target="helpShelf"
+            aria-expanded="false"
+          >
+            Hướng dẫn
+          </button>
+        </div>
+        <p id="helpShelf" class="help-panel hidden">
+          Tủ sách lưu cục bộ trên trình duyệt: mở lại truyện, tải file hoặc xóa mục.
+        </p>
+        <div class="btn-row small">
+          <button id="clearShelfBtn" class="btn ghost" type="button">Xóa tủ sách</button>
+        </div>
+        <p id="shelfHint" class="hint">Chưa có truyện nào được lưu.</p>
+        <ul id="shelfList" class="shelf-list"></ul>
+      </section>
+    </main>
+
+    <template id="coverageItemTemplate">
+      <li class="coverage-item">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span class="word-label"></span>
+      </li>
+    </template>
+
+    <template id="shelfItemTemplate">
+      <li class="shelf-item">
+        <div class="shelf-top">
+          <h3 class="shelf-title"></h3>
+          <p class="shelf-meta"></p>
+        </div>
+        <p class="shelf-preview"></p>
+        <div class="btn-row small">
+          <button class="btn ghost shelf-open" type="button">Mở</button>
+          <button class="btn ghost shelf-download" type="button">Tải</button>
+          <button class="btn ghost shelf-delete" type="button">Xóa</button>
+        </div>
+      </li>
+    </template>
+
+    <aside id="translateBubble" class="translate-bubble hidden" aria-live="polite">
+      <p id="translateSource" class="translate-source"></p>
+      <p id="translateResult" class="translate-result"></p>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>
