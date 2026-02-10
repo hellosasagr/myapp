@@ -393,6 +393,19 @@
           <p id="helpCoverage" class="help-panel hidden">
             Bảng này cho biết từ nào đã xuất hiện trong truyện, từ nào còn thiếu để bạn điều chỉnh.
           </p>
+          <div class="coverage-controls">
+            <label for="coverageModeSelect">Chế độ khớp</label>
+            <select id="coverageModeSelect" aria-label="Chế độ khớp từ vựng">
+              <option value="exact" selected>EXACT</option>
+              <option value="flex">FLEX</option>
+            </select>
+            <span class="coverage-mode-tip"
+              title="EXACT: chỉ khớp đúng từ theo ranh giới từ, không khớp homework/worked. FLEX: thêm biến thể cơ bản số nhiều, -ed, -ing và dạng apostrophe như word's.">
+              ?
+            </span>
+            <button id="autoPatchCoverageBtn" class="btn ghost" type="button">Auto Patch</button>
+          </div>
+          <p id="coverageAutoPatchStatus" class="hint">Auto Patch sẽ chèn đoạn bổ sung nếu còn thiếu từ.</p>
           <p id="coverageSummary" class="hint">Chưa tạo truyện.</p>
           <ul id="coverageList" class="coverage-list"></ul>
         </div>
@@ -590,6 +603,34 @@
           </div>
           <p id="flashcardMeaning" class="hint"></p>
         </div>
+
+        <div class="analysis error-bank-block module-card">
+          <div class="section-head mini">
+            <h3>Error Bank</h3>
+            <button class="btn help-toggle" type="button" data-target="helpErrorBank" aria-expanded="false">
+              Hướng dẫn
+            </button>
+          </div>
+          <p id="helpErrorBank" class="help-panel hidden">
+            Lưu lỗi từ quiz, dictation, pronunciation và retell để theo dõi điểm yếu và luyện lại nhanh.
+          </p>
+          <div class="btn-row small">
+            <select id="errorBankRange" aria-label="Khoảng thời gian lỗi">
+              <option value="7" selected>7 ngày</option>
+              <option value="30">30 ngày</option>
+            </select>
+            <select id="errorBankSkillFilter" aria-label="Lọc theo kỹ năng">
+              <option value="all" selected>Tất cả kỹ năng</option>
+              <option value="quiz">Quiz</option>
+              <option value="dictation">Dictation</option>
+              <option value="pronunciation">Pronunciation</option>
+              <option value="retell">Retell</option>
+            </select>
+            <button id="errorPracticeAgainBtn" class="btn ghost" type="button">Luyện lại từ yếu</button>
+          </div>
+          <p id="errorBankSummary" class="hint">Chưa có lỗi nào trong Error Bank.</p>
+          <ul id="errorBankList" class="coverage-list"></ul>
+        </div>
       </div>
     </section>
 
@@ -642,6 +683,7 @@
         <button id="importDataBtn" class="btn ghost" type="button">Import dữ liệu</button>
         <input id="importDataInput" type="file" accept=".json,application/json" class="hidden" />
       </div>
+      <p id="backupReminderBanner" class="backup-reminder hidden"></p>
       <p id="shelfHint" class="hint">Chưa có truyện nào được lưu.</p>
       <ul id="shelfList" class="shelf-list"></ul>
     </section>
@@ -677,6 +719,7 @@
   <button id="backToTopBtn" class="back-to-top hidden" type="button" aria-label="Cuộn lên đầu">↑</button>
   <div id="confettiCanvas" class="confetti-canvas"></div>
 
+  <script src="core-utils.js"></script>
   <script src="app.js"></script>
 </body>
 

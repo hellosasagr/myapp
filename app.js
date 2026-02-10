@@ -34,6 +34,9 @@
   const coverageSummary = document.getElementById("coverageSummary");
   const coverageList = document.getElementById("coverageList");
   const coverageItemTemplate = document.getElementById("coverageItemTemplate");
+  const coverageModeSelect = document.getElementById("coverageModeSelect");
+  const coverageAutoPatchStatus = document.getElementById("coverageAutoPatchStatus");
+  const autoPatchCoverageBtn = document.getElementById("autoPatchCoverageBtn");
   const buildPracticeBtn = document.getElementById("buildPracticeBtn");
   const checkPracticeBtn = document.getElementById("checkPracticeBtn");
   const resetPracticeBtn = document.getElementById("resetPracticeBtn");
@@ -107,6 +110,12 @@
   const exportDataBtn = document.getElementById("exportDataBtn");
   const importDataBtn = document.getElementById("importDataBtn");
   const importDataInput = document.getElementById("importDataInput");
+  const backupReminderBanner = document.getElementById("backupReminderBanner");
+  const errorBankRange = document.getElementById("errorBankRange");
+  const errorBankSkillFilter = document.getElementById("errorBankSkillFilter");
+  const errorPracticeAgainBtn = document.getElementById("errorPracticeAgainBtn");
+  const errorBankSummary = document.getElementById("errorBankSummary");
+  const errorBankList = document.getElementById("errorBankList");
   const dashStoriesValue = document.getElementById("dashStoriesValue");
   const dashPracticeValue = document.getElementById("dashPracticeValue");
   const dashFlashcardValue = document.getElementById("dashFlashcardValue");
@@ -139,8 +148,14 @@
   const DRAFT_STORAGE_KEY = "story-builder-draft-v1";
   const THEME_STORAGE_KEY = "story-builder-theme-v1";
   const MASTERY_STORAGE_KEY = "story-builder-mastery-v1";
-  const APP_EXPORT_VERSION = 1;
+  const ERROR_BANK_STORAGE_KEY = "story-builder-error-bank-v1";
+  const BACKUP_META_STORAGE_KEY = "story-builder-backup-meta-v1";
+  const COVERAGE_MODE_STORAGE_KEY = "story-builder-coverage-mode-v1";
+  const APP_EXPORT_VERSION = "1.1.0";
+  const COVERAGE_AUTOPATCH_MAX_ATTEMPTS = 3;
+  const BACKUP_REMINDER_DAYS = 14;
   const READ_SESSION_PERSIST_THROTTLE_MS = 1800;
+  const CoreUtils = window.StoryCore || {};
 
   const lengthToTargetSentences = {
     short: 10,
@@ -902,10 +917,13 @@
   ]);
 
   const state = {
+    currentStoryId: "",
     plainStory: "",
     words: [],
     tone: "adventure",
     length: "medium",
+    coverageMode: "exact",
+    coverageReport: null,
     shelf: [],
     translateCache: new Map(),
     activeTranslateToken: 0,
@@ -951,12 +969,15 @@
     pronunciationSampleToken: 0,
     pronunciationExpectedText: "",
     pronunciationTranscript: "",
+    errorBank: [],
+    backupMeta: { lastBackupAt: "" },
     sessionStartedAt: Date.now(),
     lastReadSessionPersistAt: 0,
   };
 
   let hoverTimerId = 0;
   let mouseOutTimerId = 0;
+  let wordMasteryData = {};
 
   initialize();
 
@@ -1030,6 +1051,22 @@
     exportDataBtn.addEventListener("click", handleExportData);
     importDataBtn.addEventListener("click", () => importDataInput.click());
     importDataInput.addEventListener("change", handleImportDataFile);
+    if (coverageModeSelect) {
+      coverageModeSelect.addEventListener("change", handleCoverageModeChange);
+    }
+    if (autoPatchCoverageBtn) {
+      autoPatchCoverageBtn.addEventListener("click", handleAutoPatchCoverage);
+    }
+    if (errorBankRange) {
+      errorBankRange.addEventListener("change", renderErrorBank);
+    }
+    if (errorBankSkillFilter) {
+      errorBankSkillFilter.addEventListener("change", renderErrorBank);
+    }
+    if (errorPracticeAgainBtn) {
+      errorPracticeAgainBtn.addEventListener("click", handlePracticeAgainFromErrorBank);
+    }
+    coverageList.addEventListener("click", handleCoverageListAction);
 
     storyOutput.addEventListener("mouseover", handleWordHover);
     storyOutput.addEventListener("mouseout", handleWordMouseOut);
@@ -1072,6 +1109,9 @@
     loadFlashcards();
     loadProgressData();
     loadGoalData();
+    loadCoverageMode();
+    loadErrorBank();
+    loadBackupMeta();
     state.speechSupported = supportsSpeech();
     state.pronunciationSupported = supportsSpeechRecognition();
     if (!state.speechSupported) {
@@ -1123,6 +1163,8 @@
     renderCollocations();
     updatePronunciationUI();
     updateAdaptivePracticeUI();
+    renderErrorBank();
+    updateBackupReminderBanner();
     syncRepeatUI();
     syncRepeatLoopUI();
     updateReadControls();
@@ -1181,6 +1223,7 @@
     state.tone = tone;
     state.length = length;
     state.plainStory = story;
+    state.currentStoryId = generateId();
 
     storyOutput.classList.remove("empty");
     renderStoryOutput(story, words);
@@ -1204,6 +1247,9 @@
 
     recordStoryGeneration(words.length);
     updateStoryStats(story);
+    if (coverageAutoPatchStatus) {
+      coverageAutoPatchStatus.textContent = "Auto Patch sẽ chèn đoạn bổ sung nếu còn thiếu từ.";
+    }
     saveDraft();
   }
 
@@ -1211,7 +1257,9 @@
     stopReading({ silent: true });
     vocabInput.value = "";
     storyTitle.value = "";
+    state.currentStoryId = "";
     state.plainStory = "";
+    state.coverageReport = null;
     state.words = [];
     state.readSentenceQueue = [];
     state.currentSentenceIndex = -1;
@@ -1220,6 +1268,9 @@
     storyOutput.classList.add("empty");
     storyOutput.textContent = "Câu chuyện được tạo sẽ xuất hiện ở đây.";
     coverageSummary.textContent = "Chưa tạo truyện.";
+    if (coverageAutoPatchStatus) {
+      coverageAutoPatchStatus.textContent = "Auto Patch sẽ chèn đoạn bổ sung nếu còn thiếu từ.";
+    }
     coverageList.innerHTML = "";
     hideTranslateBubble();
     clearPracticeState('Tạo truyện xong rồi bấm "Tạo bài luyện" để luyện từ vựng.');
@@ -1270,8 +1321,11 @@
     }
 
     const title = storyTitle.value.trim() || suggestTitle(state.words, state.tone);
+    if (!state.currentStoryId) {
+      state.currentStoryId = generateId();
+    }
     const entry = {
-      id: generateId(),
+      id: state.currentStoryId,
       title,
       tone: state.tone,
       length: state.length,
@@ -1280,6 +1334,7 @@
       createdAt: new Date().toISOString(),
     };
 
+    state.shelf = state.shelf.filter((item) => item.id !== entry.id);
     state.shelf.unshift(entry);
     state.shelf = state.shelf.slice(0, 60);
     storyTitle.value = title;
@@ -1903,6 +1958,20 @@
       }
       if (isCorrect) {
         correct += 1;
+      } else {
+        const sentenceId = Number.parseInt(node.dataset.sentenceId || "", 10);
+        logErrorEntry({
+          word: focusWord,
+          sentenceId: Number.isInteger(sentenceId) ? sentenceId : null,
+          sentenceText: node.dataset.sentenceText || "",
+          skill: "quiz",
+          errorType:
+            questionType === "multiple_choice"
+              ? "wrong_choice"
+              : questionType === "true_false"
+                ? "wrong_true_false"
+                : "wrong_fill_blank",
+        });
       }
       wordFeedback.push({ word: focusWord, correct: isCorrect });
     });
@@ -1986,13 +2055,13 @@
       return;
     }
 
-    const source = state.readSentenceQueue.filter(
-      (sentence) => sentence && sentence.trim().split(/\s+/).length >= 1
-    );
-    state.dictationItems = source.map((sentence) => ({
-      id: generateId(),
-      sentence: sentence.trim(),
-    }));
+    state.dictationItems = state.readSentenceQueue
+      .map((sentence, sentenceIndex) => ({
+        id: generateId(),
+        sentence: String(sentence || "").trim(),
+        sentenceId: sentenceIndex,
+      }))
+      .filter((item) => item.sentence && item.sentence.split(/\s+/).length >= 1);
     state.dictationIndex = 0;
     state.dictationToken += 1;
     dictationInput.value = "";
@@ -2126,6 +2195,22 @@
     dictationResult.textContent = isPerfect
       ? "Chính xác 100%."
       : `Độ chính xác ước tính: ${score}%.`;
+    if (!isPerfect) {
+      const userSet = new Set(userTokens);
+      const mismatchedWords = expectedTokens
+        .filter((token) => !userSet.has(token) && !COMMON_STOPWORDS.has(normalize(token)))
+        .slice(0, 4);
+      const fallbacks = mismatchedWords.length > 0 ? mismatchedWords : [expectedTokens[0]];
+      fallbacks.forEach((word) => {
+        logErrorEntry({
+          word,
+          sentenceId: Number.isInteger(item.sentenceId) ? item.sentenceId : state.dictationIndex,
+          sentenceText: item.sentence,
+          skill: "dictation",
+          errorType: "token_mismatch",
+        });
+      });
+    }
     recordDictationPerformance(score);
     addDailyWords(expectedTokens.length);
   }
@@ -2220,6 +2305,18 @@
     if (suggestions.length === 0) {
       suggestions.push("Bài retell tốt. Có thể thử viết bản ngắn hơn nhưng vẫn giữ đủ ý.");
     }
+    const missedTargetWords = Array.isArray(state.words)
+      ? state.words.filter((word) => !hasWord(userText, word)).slice(0, 12)
+      : [];
+    missedTargetWords.forEach((word) => {
+      logErrorEntry({
+        word,
+        sentenceId: null,
+        sentenceText: "",
+        skill: "retell",
+        errorType: "missing_target_vocab",
+      });
+    });
 
     retellResult.classList.remove("empty");
     retellResult.innerHTML = `
@@ -2550,6 +2647,22 @@
           ? "Ổn, cần nhấn rõ thêm ở các từ dài."
           : "Cần luyện lại, thử đọc chậm và tách từ rõ hơn.";
     pronunciationResult.textContent = `Điểm phát âm (theo transcript): ${score}%. ${feedback}`;
+    if (score < 90) {
+      const spokenSet = new Set(spokenTokens);
+      const weakTokens = expectedTokens
+        .filter((token) => !spokenSet.has(token) && !COMMON_STOPWORDS.has(normalize(token)))
+        .slice(0, 4);
+      const fallbacks = weakTokens.length > 0 ? weakTokens : [expectedTokens[0]];
+      fallbacks.forEach((token) => {
+        logErrorEntry({
+          word: token,
+          sentenceId: Number.isInteger(state.selectedSentenceIndex) ? state.selectedSentenceIndex : null,
+          sentenceText: state.pronunciationExpectedText,
+          skill: "pronunciation",
+          errorType: "transcript_mismatch",
+        });
+      });
+    }
     recordPronunciationPerformance(score);
     addDailyWords(expectedTokens.length);
     updatePronunciationUI();
@@ -3268,6 +3381,7 @@
     state.hoverSentenceIndex = state.selectedSentenceIndex;
     setSelectedSentence(state.selectedSentenceIndex);
     syncSentenceModelSelectionState();
+    const selectedText = window.getSelection ? (window.getSelection().toString() || "").trim() : "";
 
     if (state.readState !== "playing") {
       updateReadProgress({
@@ -3278,6 +3392,10 @@
     }
     if (pronunciationTargetType.value === "selected_sentence" && state.pronunciationExpectedText) {
       handlePreparePronunciationTarget();
+    }
+    if (!selectedText && state.speechSupported && state.readSentenceQueue.length > 0) {
+      startReadingAt(state.selectedSentenceIndex, `Đang đọc từ câu ${state.selectedSentenceIndex + 1}.`);
+      return;
     }
     updateReadControls();
   }
@@ -3749,31 +3867,290 @@
     return trimmed + lastPunct;
   }
 
-  function renderCoverage(words, story) {
-    coverageList.innerHTML = "";
-    if (words.length === 0) {
-      coverageSummary.textContent = "Chưa tạo truyện.";
+  function normalizeCoverageMode(mode) {
+    if (CoreUtils && typeof CoreUtils.normalizeCoverageMode === "function") {
+      return CoreUtils.normalizeCoverageMode(mode);
+    }
+    return String(mode || "").toLowerCase() === "flex" ? "flex" : "exact";
+  }
+
+  function loadCoverageMode() {
+    const fallback = normalizeCoverageMode(state.coverageMode);
+    try {
+      const raw = localStorage.getItem(COVERAGE_MODE_STORAGE_KEY);
+      state.coverageMode = normalizeCoverageMode(raw || fallback);
+    } catch {
+      state.coverageMode = fallback;
+    }
+    if (coverageModeSelect) {
+      coverageModeSelect.value = state.coverageMode;
+    }
+  }
+
+  function persistCoverageMode() {
+    try {
+      localStorage.setItem(COVERAGE_MODE_STORAGE_KEY, state.coverageMode);
+    } catch {
+      // Ignore localStorage write failure.
+    }
+  }
+
+  function handleCoverageModeChange() {
+    state.coverageMode = normalizeCoverageMode(coverageModeSelect ? coverageModeSelect.value : "exact");
+    persistCoverageMode();
+    if (state.plainStory && Array.isArray(state.words) && state.words.length > 0) {
+      renderCoverage(state.words, state.plainStory);
+    }
+  }
+
+  function buildSentenceRecordsForStory(story) {
+    const text = String(story || "").trim();
+    if (!text) {
+      return [];
+    }
+    const paragraphs = text
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+    let sentenceId = 0;
+    const records = [];
+    paragraphs.forEach((paragraph) => {
+      const sentences = splitStoryIntoSentences(paragraph);
+      sentences.forEach((sentence) => {
+        const cleanSentence = String(sentence || "").trim();
+        if (!cleanSentence) {
+          return;
+        }
+        records.push({ id: sentenceId, text: cleanSentence });
+        sentenceId += 1;
+      });
+    });
+    return records;
+  }
+
+  function buildCoveragePatternForMode(word, mode) {
+    if (mode === "flex" && CoreUtils && typeof CoreUtils.buildFlexVariants === "function") {
+      const variants = CoreUtils.buildFlexVariants(word);
+      const escaped = variants.map((item) => escapeRegExp(item)).sort((a, b) => b.length - a.length);
+      if (escaped.length > 0) {
+        return new RegExp(`(^|[^A-Za-z0-9'])(?:${escaped.join("|")})(?=$|[^A-Za-z0-9'])`, "gi");
+      }
+    }
+    const exact = escapeRegExp(word);
+    return new RegExp(`(^|[^A-Za-z0-9'])${exact}(?=$|[^A-Za-z0-9'])`, "gi");
+  }
+
+  function computeCoverageReportForStory(words, story, mode) {
+    const normalizedMode = normalizeCoverageMode(mode);
+    const sentenceRecords = buildSentenceRecordsForStory(story);
+    const dedupedWords =
+      CoreUtils && typeof CoreUtils.dedupeWords === "function"
+        ? CoreUtils.dedupeWords(words)
+        : [...new Set((words || []).map((word) => String(word || "").trim()).filter(Boolean))];
+
+    if (CoreUtils && typeof CoreUtils.analyzeCoverage === "function") {
+      return CoreUtils.analyzeCoverage({
+        words: dedupedWords,
+        sentences: sentenceRecords.map((record) => record.text),
+        mode: normalizedMode,
+      });
+    }
+
+    const items = dedupedWords.map((word) => {
+      const pattern = buildCoveragePatternForMode(normalize(word), normalizedMode);
+      let count = 0;
+      const sentenceIndexes = [];
+      sentenceRecords.forEach((record, sentenceIndex) => {
+        const text = (record.text || "").replace(/[’`]/g, "'");
+        pattern.lastIndex = 0;
+        let localCount = 0;
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+          localCount += 1;
+          if (pattern.lastIndex === match.index) {
+            pattern.lastIndex += 1;
+          }
+        }
+        if (localCount > 0) {
+          count += localCount;
+          sentenceIndexes.push(sentenceIndex);
+        }
+      });
+      return {
+        word,
+        covered: count > 0,
+        count,
+        sentenceIndexes,
+      };
+    });
+    const coveredWords = items.filter((item) => item.covered).length;
+    const missingWords = items.filter((item) => !item.covered).map((item) => item.word);
+    return {
+      mode: normalizedMode,
+      totalWords: dedupedWords.length,
+      coveredWords,
+      missingWordsCount: missingWords.length,
+      missingWords,
+      items,
+    };
+  }
+
+  function handleCoverageListAction(event) {
+    const jumpButton = event.target.closest(".coverage-ref-btn");
+    if (!jumpButton) {
       return;
     }
 
-    const missingWords = [];
+    const sentenceId = Number.parseInt(jumpButton.dataset.sentenceId || "", 10);
+    if (!Number.isInteger(sentenceId)) {
+      return;
+    }
+    const index = normalizeSentenceIndex(sentenceId);
+    if (index < 0) {
+      return;
+    }
 
-    words.forEach((word) => {
-      const found = hasWord(story, word);
-      if (!found) {
-        missingWords.push(word);
-      }
+    state.selectedSentenceIndex = index;
+    setSelectedSentence(index);
+    updateReadProgress({ index, total: state.readSentenceQueue.length, completed: false });
+    const node = storyOutput.querySelector(`[data-sentence-id="${index}"]`);
+    if (node) {
+      node.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    coverageSummary.textContent = `Đã nhảy đến câu ${index + 1} cho từ "${jumpButton.dataset.word || ""}".`;
+    updateReadControls();
+  }
 
+  function renderCoverage(words, story) {
+    coverageList.innerHTML = "";
+    state.coverageReport = null;
+    if (words.length === 0) {
+      coverageSummary.textContent = "Chưa tạo truyện.";
+      return null;
+    }
+
+    const mode = normalizeCoverageMode(state.coverageMode);
+    const report = computeCoverageReportForStory(words, story, mode);
+    state.coverageReport = report;
+
+    report.items.forEach((entry) => {
       const item = coverageItemTemplate.content.firstElementChild.cloneNode(true);
-      item.classList.add(found ? "ok" : "missing");
-      item.querySelector(".word-label").textContent = word;
+      item.classList.add(entry.covered ? "ok" : "missing");
+      item.querySelector(".word-label").textContent = entry.word;
+
+      const countNode = document.createElement("span");
+      countNode.className = "coverage-count";
+      countNode.textContent = `xuất hiện: ${entry.count}`;
+      item.appendChild(countNode);
+
+      const refsNode = document.createElement("div");
+      refsNode.className = "coverage-refs";
+      if (Array.isArray(entry.sentenceIndexes) && entry.sentenceIndexes.length > 0) {
+        entry.sentenceIndexes.forEach((sentenceIndex) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "coverage-ref-btn";
+          button.dataset.sentenceId = String(sentenceIndex);
+          button.dataset.word = entry.word;
+          button.textContent = `Câu ${sentenceIndex + 1}`;
+          refsNode.appendChild(button);
+        });
+      } else {
+        refsNode.textContent = "Không có vị trí.";
+      }
+      item.appendChild(refsNode);
       coverageList.appendChild(item);
     });
 
-    if (missingWords.length === 0) {
-      coverageSummary.textContent = `OK: đủ ${words.length}/${words.length} từ.`;
+    const modeLabel = report.mode === "flex" ? "FLEX" : "EXACT";
+    if (report.missingWordsCount === 0) {
+      coverageSummary.textContent = `Đủ ${report.coveredWords}/${report.totalWords} từ (${modeLabel}).`;
     } else {
-      coverageSummary.textContent = `Còn thiếu ${missingWords.length} từ: ${missingWords.join(", ")}`;
+      coverageSummary.textContent = `Tổng ${report.totalWords} | Đã phủ ${report.coveredWords} | Thiếu ${report.missingWordsCount} (${modeLabel}).`;
+    }
+    return report;
+  }
+
+  function buildCoveragePatchParagraph(missingWords) {
+    const list = Array.isArray(missingWords) ? missingWords.filter(Boolean) : [];
+    if (list.length === 0) {
+      return "";
+    }
+    const selectedTone = toneConfig[state.tone] || toneConfig.adventure;
+    const level = cefrConfig[cefrLevel ? cefrLevel.value : "b1"] || cefrConfig.b1;
+    const names = shuffle(["Lena", "Noah", "Maya", "Ethan", "Sofia", "Kai"]);
+    const context = {
+      hero: names[0],
+      friend: names[1],
+      helper: pickRandom(["the mentor", "a classmate", "a local guide"]),
+      setting: pickRandom(selectedTone.settingOptions || toneConfig.adventure.settingOptions),
+      goal: pickRandom(selectedTone.goalOptions || toneConfig.adventure.goalOptions),
+      object: pickRandom(["a short note", "a checklist", "a field journal"]),
+    };
+    const intro = applyCefrLevel(
+      fillTemplate(pickRandom(selectedTone.details || toneConfig.adventure.details), context),
+      level
+    );
+    const patchSentences = list.map((word) =>
+      applyCefrLevel(
+        fillTemplate(pickRandom(wordSentenceTemplates), {
+          ...context,
+          word,
+        }),
+        level
+      )
+    );
+    return [intro, ...patchSentences].join(" ").trim();
+  }
+
+  function handleAutoPatchCoverage() {
+    if (!state.plainStory || !Array.isArray(state.words) || state.words.length === 0) {
+      if (coverageAutoPatchStatus) {
+        coverageAutoPatchStatus.textContent = "Tạo truyện trước khi dùng Auto Patch.";
+      }
+      return;
+    }
+
+    if (autoPatchCoverageBtn) {
+      autoPatchCoverageBtn.disabled = true;
+    }
+    let report = state.coverageReport || renderCoverage(state.words, state.plainStory);
+    let attempts = 0;
+
+    while (
+      report &&
+      report.missingWordsCount > 0 &&
+      attempts < COVERAGE_AUTOPATCH_MAX_ATTEMPTS
+    ) {
+      attempts += 1;
+      if (coverageAutoPatchStatus) {
+        coverageAutoPatchStatus.textContent = `Auto Patch ${attempts}/${COVERAGE_AUTOPATCH_MAX_ATTEMPTS}: thêm ${report.missingWords.join(", ")}.`;
+      }
+      const patchParagraph = buildCoveragePatchParagraph(report.missingWords);
+      if (!patchParagraph) {
+        break;
+      }
+      state.plainStory = `${state.plainStory.trim()}\n\n${patchParagraph}`;
+      storyOutput.classList.remove("empty");
+      renderStoryOutput(state.plainStory, state.words);
+      report = renderCoverage(state.words, state.plainStory);
+    }
+
+    if (coverageAutoPatchStatus) {
+      if (report && report.missingWordsCount === 0) {
+        coverageAutoPatchStatus.textContent = `Auto Patch hoàn tất: đủ ${report.coveredWords}/${report.totalWords} từ sau ${attempts} lần.`;
+      } else if (report) {
+        coverageAutoPatchStatus.textContent = `Auto Patch dừng sau ${attempts} lần. Còn thiếu ${report.missingWordsCount} từ: ${report.missingWords.join(", ")}.`;
+      } else {
+        coverageAutoPatchStatus.textContent = "Auto Patch không thể chạy với dữ liệu hiện tại.";
+      }
+    }
+
+    updateStoryStats(state.plainStory);
+    updateCollocationsForStory(state.plainStory);
+    saveDraft();
+    if (autoPatchCoverageBtn) {
+      autoPatchCoverageBtn.disabled = false;
     }
   }
 
@@ -3852,6 +4229,7 @@
     state.words = [...entry.words];
     state.tone = entry.tone;
     state.length = entry.length;
+    state.currentStoryId = entry.id || generateId();
 
     storyTitle.value = entry.title;
     vocabInput.value = entry.words.join(", ");
@@ -3861,6 +4239,9 @@
     storyOutput.classList.remove("empty");
     renderStoryOutput(entry.story, entry.words);
     renderCoverage(entry.words, entry.story);
+    if (coverageAutoPatchStatus) {
+      coverageAutoPatchStatus.textContent = "Auto Patch sẽ chèn đoạn bổ sung nếu còn thiếu từ.";
+    }
     updateCollocationsForStory(entry.story);
     coverageSummary.textContent = `Đã mở truyện "${entry.title}" từ tủ sách.`;
     clearPracticeState('Đã mở truyện. Bấm "Tạo bài luyện" để tạo câu hỏi.');
@@ -3900,6 +4281,11 @@
   function renderMessage(message) {
     storyOutput.classList.add("empty");
     storyOutput.textContent = message;
+    if (coverageAutoPatchStatus) {
+      coverageAutoPatchStatus.textContent = "Auto Patch sẽ chèn đoạn bổ sung nếu còn thiếu từ.";
+    }
+    state.currentStoryId = "";
+    state.coverageReport = null;
     state.readSentenceQueue = [];
     state.currentSentenceIndex = -1;
     state.selectedSentenceIndex = -1;
@@ -3944,7 +4330,7 @@
     ];
     let selectedQuestions = [];
 
-    storySentences.forEach((sentence) => {
+    storySentences.forEach((sentence, sentenceIndex) => {
       const targetWord = pickPracticeTargetWord(sentence, uniqueWords, fallbackWordPool, {
         weakWordSet,
         adaptiveLevel,
@@ -3979,6 +4365,8 @@
           type: "multiple_choice",
           answer: targetWord,
           focusWord: targetWord,
+          sentenceId: sentenceIndex,
+          sourceSentence: sentence,
           difficulty: adaptiveLevel,
           prompt,
           options: shuffle([targetWord, ...distractors]),
@@ -3999,6 +4387,8 @@
             type: "true_false",
             answer: "false",
             focusWord: targetWord,
+            sentenceId: sentenceIndex,
+            sourceSentence: sentence,
             difficulty: adaptiveLevel,
             prompt: sentence.replace(buildWordPattern(targetWord), replacement),
           });
@@ -4008,6 +4398,8 @@
             type: "true_false",
             answer: "true",
             focusWord: targetWord,
+            sentenceId: sentenceIndex,
+            sourceSentence: sentence,
             difficulty: adaptiveLevel,
             prompt: sentence,
           });
@@ -4022,6 +4414,8 @@
         type: "fill_blank",
         answer: targetWord,
         focusWord: targetWord,
+        sentenceId: sentenceIndex,
+        sourceSentence: sentence,
         difficulty: adaptiveLevel,
         prompt: `${prompt}${hintSuffix}`,
       });
@@ -4238,6 +4632,9 @@
       li.dataset.answer = item.answer;
       li.dataset.type = item.type || "fill_blank";
       li.dataset.word = item.focusWord || item.answer || "";
+      li.dataset.sentenceId =
+        Number.isInteger(item.sentenceId) && item.sentenceId >= 0 ? String(item.sentenceId) : "";
+      li.dataset.sentenceText = typeof item.sourceSentence === "string" ? item.sourceSentence : "";
 
       const prompt = `<p class="practice-prompt"><strong>Câu ${index + 1}:</strong> ${escapeHtml(item.prompt)}</p>`;
       let content = "";
@@ -4767,6 +5164,276 @@
     updateDashboard();
   }
 
+  function sanitizeErrorBankEntry(raw) {
+    if (!raw || typeof raw !== "object") {
+      return null;
+    }
+    const word = normalize(raw.word || "");
+    const skill = normalize(raw.skill || "");
+    const allowedSkills = new Set(["quiz", "dictation", "pronunciation", "retell"]);
+    if (!word || !allowedSkills.has(skill)) {
+      return null;
+    }
+    const sentenceId = Number.isInteger(raw.sentenceId) && raw.sentenceId >= 0 ? raw.sentenceId : null;
+    const timestamp =
+      typeof raw.timestamp === "string" && Number.isFinite(Date.parse(raw.timestamp))
+        ? raw.timestamp
+        : new Date().toISOString();
+    return {
+      id: typeof raw.id === "string" ? raw.id : generateId(),
+      word,
+      sentenceId,
+      sentenceText: typeof raw.sentenceText === "string" ? raw.sentenceText : "",
+      skill,
+      errorType: normalize(raw.errorType || "mismatch") || "mismatch",
+      timestamp,
+      storyId: typeof raw.storyId === "string" ? raw.storyId : "",
+    };
+  }
+
+  function loadErrorBank() {
+    try {
+      const raw = localStorage.getItem(ERROR_BANK_STORAGE_KEY);
+      if (!raw) {
+        state.errorBank = [];
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        state.errorBank = [];
+        return;
+      }
+      state.errorBank = parsed
+        .map((item) => sanitizeErrorBankEntry(item))
+        .filter(Boolean)
+        .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
+        .slice(0, 2400);
+    } catch {
+      state.errorBank = [];
+    }
+  }
+
+  function persistErrorBank() {
+    try {
+      localStorage.setItem(ERROR_BANK_STORAGE_KEY, JSON.stringify(state.errorBank));
+    } catch {
+      // Ignore localStorage write failure.
+    }
+  }
+
+  function logErrorEntry(input) {
+    const entry = sanitizeErrorBankEntry({
+      ...input,
+      storyId: input?.storyId || state.currentStoryId || "",
+      timestamp: new Date().toISOString(),
+    });
+    if (!entry) {
+      return;
+    }
+    state.errorBank.unshift(entry);
+    state.errorBank = state.errorBank.slice(0, 2400);
+    persistErrorBank();
+    renderErrorBank();
+  }
+
+  function getErrorBankRangeDays() {
+    const parsed = Number.parseInt(errorBankRange ? errorBankRange.value : "7", 10);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return 7;
+    }
+    return parsed;
+  }
+
+  function getErrorBankSkillFilterValue() {
+    const value = normalize(errorBankSkillFilter ? errorBankSkillFilter.value : "all");
+    return value || "all";
+  }
+
+  function getFilteredErrorEntries(rangeDays, skillFilter) {
+    const days = Number.isFinite(rangeDays) ? rangeDays : getErrorBankRangeDays();
+    const filter = skillFilter || getErrorBankSkillFilterValue();
+    const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+    return state.errorBank.filter((entry) => {
+      const stamp = Date.parse(entry.timestamp || "");
+      if (!Number.isFinite(stamp) || stamp < threshold) {
+        return false;
+      }
+      if (filter !== "all" && entry.skill !== filter) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function getTopErrorWords(entries, limit) {
+    const counters = new Map();
+    entries.forEach((entry) => {
+      const key = entry.word;
+      if (!key) {
+        return;
+      }
+      if (!counters.has(key)) {
+        counters.set(key, {
+          word: key,
+          count: 0,
+          skills: new Set(),
+          latestAt: entry.timestamp,
+          sampleSentence: entry.sentenceText || "",
+        });
+      }
+      const current = counters.get(key);
+      current.count += 1;
+      current.skills.add(entry.skill);
+      if (
+        !current.sampleSentence &&
+        typeof entry.sentenceText === "string" &&
+        entry.sentenceText.trim()
+      ) {
+        current.sampleSentence = entry.sentenceText.trim();
+      }
+      if (Date.parse(entry.timestamp || "") > Date.parse(current.latestAt || "")) {
+        current.latestAt = entry.timestamp;
+      }
+    });
+
+    return [...counters.values()]
+      .sort((a, b) => {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+        return Date.parse(b.latestAt || 0) - Date.parse(a.latestAt || 0);
+      })
+      .slice(0, Math.max(1, limit || 8));
+  }
+
+  function renderErrorBank() {
+    if (!errorBankList || !errorBankSummary) {
+      return;
+    }
+    errorBankList.innerHTML = "";
+    const rangeDays = getErrorBankRangeDays();
+    const skillFilter = getErrorBankSkillFilterValue();
+    const filtered = getFilteredErrorEntries(rangeDays, skillFilter);
+    const topErrors = getTopErrorWords(filtered, 12);
+
+    if (filtered.length === 0 || topErrors.length === 0) {
+      errorBankSummary.textContent = `Không có lỗi trong ${rangeDays} ngày gần đây.`;
+      return;
+    }
+
+    errorBankSummary.textContent = `Top lỗi ${rangeDays} ngày: ${topErrors.length} từ yếu (${filtered.length} bản ghi).`;
+    topErrors.forEach((item) => {
+      const row = coverageItemTemplate.content.firstElementChild.cloneNode(true);
+      row.classList.add("missing");
+      row.querySelector(".word-label").textContent = item.word;
+
+      const countNode = document.createElement("span");
+      countNode.className = "coverage-count";
+      countNode.textContent = `${item.count} lỗi | ${[...item.skills].join(", ")}`;
+      row.appendChild(countNode);
+
+      if (item.sampleSentence) {
+        const sentenceNode = document.createElement("div");
+        sentenceNode.className = "coverage-refs";
+        sentenceNode.textContent = truncate(item.sampleSentence, 120);
+        row.appendChild(sentenceNode);
+      }
+      errorBankList.appendChild(row);
+    });
+  }
+
+  function handlePracticeAgainFromErrorBank() {
+    const rangeDays = getErrorBankRangeDays();
+    const skillFilter = getErrorBankSkillFilterValue();
+    const filtered = getFilteredErrorEntries(rangeDays, skillFilter);
+    const topWords = getTopErrorWords(filtered, 8).map((item) => item.word);
+    if (topWords.length === 0) {
+      errorBankSummary.textContent = "Chưa có từ yếu để luyện lại.";
+      return;
+    }
+
+    if (!state.plainStory) {
+      errorBankSummary.textContent = "Mở hoặc tạo truyện trước khi dùng 'Luyện lại từ yếu'.";
+      return;
+    }
+
+    const candidateWords = topWords.filter((word) => hasWord(state.plainStory, word));
+    const targetWords = candidateWords.length > 0 ? candidateWords : topWords;
+    const questions = buildPracticeQuestions(state.plainStory, targetWords, "fill_blank", {
+      adaptiveLevel: Math.max(2, state.adaptiveLevel),
+      weakWords: topWords,
+    }).slice(0, 8);
+
+    if (questions.length === 0) {
+      errorBankSummary.textContent = "Không tạo được bài luyện lại từ Error Bank.";
+      return;
+    }
+
+    state.practiceMode = "fill_blank";
+    state.practiceItems = questions;
+    practiceType.value = "fill_blank";
+    renderPracticeItems();
+    updatePracticeControls();
+    practiceSummary.textContent = `Luyện lại từ yếu: ${questions.length} câu (${targetWords.join(", ")}).`;
+    startQuizTimer();
+    location.hash = "#secLearning";
+  }
+
+  function loadBackupMeta() {
+    try {
+      const raw = localStorage.getItem(BACKUP_META_STORAGE_KEY);
+      if (!raw) {
+        state.backupMeta = { lastBackupAt: "" };
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      const validDate =
+        typeof parsed?.lastBackupAt === "string" && Number.isFinite(Date.parse(parsed.lastBackupAt))
+          ? parsed.lastBackupAt
+          : "";
+      state.backupMeta = { lastBackupAt: validDate };
+    } catch {
+      state.backupMeta = { lastBackupAt: "" };
+    }
+  }
+
+  function persistBackupMeta() {
+    try {
+      localStorage.setItem(BACKUP_META_STORAGE_KEY, JSON.stringify(state.backupMeta));
+    } catch {
+      // Ignore localStorage write failure.
+    }
+  }
+
+  function markBackupCreated(isoDate) {
+    state.backupMeta.lastBackupAt =
+      typeof isoDate === "string" && Number.isFinite(Date.parse(isoDate))
+        ? isoDate
+        : new Date().toISOString();
+    persistBackupMeta();
+    updateBackupReminderBanner();
+  }
+
+  function updateBackupReminderBanner() {
+    if (!backupReminderBanner) {
+      return;
+    }
+    const lastBackupAt = state.backupMeta.lastBackupAt;
+    if (!lastBackupAt || !Number.isFinite(Date.parse(lastBackupAt))) {
+      backupReminderBanner.classList.remove("hidden");
+      backupReminderBanner.textContent = `Bạn chưa backup dữ liệu. Nên Export ít nhất mỗi ${BACKUP_REMINDER_DAYS} ngày.`;
+      return;
+    }
+    const ageDays = Math.floor((Date.now() - Date.parse(lastBackupAt)) / (24 * 60 * 60 * 1000));
+    if (ageDays > BACKUP_REMINDER_DAYS) {
+      backupReminderBanner.classList.remove("hidden");
+      backupReminderBanner.textContent = `Lần backup gần nhất đã ${ageDays} ngày trước (${formatDate(lastBackupAt)}). Hãy Export lại.`;
+      return;
+    }
+    backupReminderBanner.classList.add("hidden");
+    backupReminderBanner.textContent = "";
+  }
+
   function updateAdaptiveLevel(percent) {
     if (!Number.isFinite(percent)) {
       return;
@@ -4951,18 +5618,29 @@
     });
 
     const payload = {
-      version: APP_EXPORT_VERSION,
-      exportedAt: new Date().toISOString(),
       shelf: state.shelf,
       flashcards: state.flashcards,
       translateCache: translateObject,
       progress: state.progress,
       goals: state.goals,
+      coverageMode: state.coverageMode,
+      errorBank: state.errorBank,
+      wordMastery: wordMasteryData,
+      backupMeta: state.backupMeta,
     };
+    const envelope =
+      CoreUtils && typeof CoreUtils.createBackupEnvelope === "function"
+        ? CoreUtils.createBackupEnvelope(payload, { version: APP_EXPORT_VERSION })
+        : {
+          version: APP_EXPORT_VERSION,
+          createdAt: new Date().toISOString(),
+          payload,
+        };
 
     const fileName = `story-builder-backup-${getTodayKey()}.json`;
-    downloadText(JSON.stringify(payload, null, 2), fileName);
-    coverageSummary.textContent = "Đã export toàn bộ dữ liệu học.";
+    downloadText(JSON.stringify(envelope, null, 2), fileName);
+    markBackupCreated(envelope.createdAt);
+    coverageSummary.textContent = `Đã export dữ liệu (${envelope.version}).`;
   }
 
   async function handleImportDataFile(event) {
@@ -4974,10 +5652,20 @@
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
-      applyImportedData(parsed);
-      coverageSummary.textContent = `Đã import dữ liệu từ ${file.name}.`;
-    } catch {
-      coverageSummary.textContent = "Import thất bại. File JSON không hợp lệ.";
+      const envelope =
+        CoreUtils && typeof CoreUtils.validateAndMigrateBackup === "function"
+          ? CoreUtils.validateAndMigrateBackup(parsed, {
+            currentVersion: APP_EXPORT_VERSION,
+          })
+          : parsed;
+      applyImportedData(envelope.payload || envelope);
+      markBackupCreated(new Date().toISOString());
+      coverageSummary.textContent = envelope.migratedFrom
+        ? `Đã import dữ liệu từ ${file.name} (migrate ${envelope.migratedFrom} -> ${APP_EXPORT_VERSION}).`
+        : `Đã import dữ liệu từ ${file.name}.`;
+    } catch (error) {
+      const message = error && error.message ? error.message : "File JSON không hợp lệ.";
+      coverageSummary.textContent = `Import thất bại: ${message}`;
     } finally {
       importDataInput.value = "";
     }
@@ -5026,11 +5714,44 @@
       persistGoalData();
     }
 
+    if (Array.isArray(payload.errorBank)) {
+      state.errorBank = payload.errorBank
+        .map((item) => sanitizeErrorBankEntry(item))
+        .filter(Boolean)
+        .slice(0, 2400);
+      persistErrorBank();
+    }
+
+    if (payload.wordMastery && typeof payload.wordMastery === "object") {
+      wordMasteryData = payload.wordMastery;
+      persistWordMastery();
+    }
+
+    if (payload.backupMeta && typeof payload.backupMeta === "object") {
+      const lastBackupAt =
+        typeof payload.backupMeta.lastBackupAt === "string" &&
+          Number.isFinite(Date.parse(payload.backupMeta.lastBackupAt))
+          ? payload.backupMeta.lastBackupAt
+          : "";
+      state.backupMeta = { lastBackupAt };
+      persistBackupMeta();
+    }
+
+    if (typeof payload.coverageMode === "string") {
+      state.coverageMode = normalizeCoverageMode(payload.coverageMode);
+      if (coverageModeSelect) {
+        coverageModeSelect.value = state.coverageMode;
+      }
+      persistCoverageMode();
+    }
+
     renderShelf();
+    renderErrorBank();
     updateFlashcardUI();
     updateDashboard();
     updateGoalUI();
     updateAdaptivePracticeUI();
+    updateBackupReminderBanner();
   }
 
   function getDueFlashcards() {
@@ -5170,16 +5891,17 @@
   }
 
   function splitStoryIntoSentences(paragraph) {
+    if (CoreUtils && typeof CoreUtils.splitIntoSentences === "function") {
+      return CoreUtils.splitIntoSentences(paragraph);
+    }
     const compact = paragraph.replace(/\s+/g, " ").trim();
     if (!compact) {
       return [];
     }
-
     const matches = compact.match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g);
     if (!matches || matches.length === 0) {
       return [compact];
     }
-
     return matches.map((sentence) => sentence.trim()).filter(Boolean);
   }
 
@@ -5627,8 +6349,6 @@
   }
 
   /* ─── Feature 5: Word Mastery Tracker ─── */
-  let wordMasteryData = {};
-
   function loadWordMastery() {
     try {
       const raw = localStorage.getItem(MASTERY_STORAGE_KEY);
@@ -5673,12 +6393,12 @@
   /* ─── Patch renderCoverage to show mastery badges ─── */
   const originalRenderCoverage = renderCoverage;
   renderCoverage = function (words, story) {
-    originalRenderCoverage(words, story);
-    if (!words || words.length === 0) return;
+    const report = originalRenderCoverage(words, story);
+    if (!words || words.length === 0) return report;
     const items = coverageList.querySelectorAll(".coverage-item");
     items.forEach((item, index) => {
       if (index >= words.length) return;
-      const word = words[index];
+      const word = report?.items?.[index]?.word || words[index];
       const level = getMasteryLevel(word);
       const existing = item.querySelector(".mastery-badge");
       if (existing) existing.remove();
@@ -5687,12 +6407,6 @@
       badge.textContent = getMasteryLabel(level);
       item.appendChild(badge);
     });
+    return report;
   };
 })();
-
-
-
-
-
-
-
