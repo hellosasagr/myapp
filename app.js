@@ -1,6 +1,7 @@
 ﻿(function () {
   const vocabInput = document.getElementById("vocabInput");
   const storyLength = document.getElementById("storyLength");
+  const cefrLevel = document.getElementById("cefrLevel");
   const genrePicker = document.getElementById("genrePicker");
   const toneInputs = Array.from(document.querySelectorAll('input[name="storyTone"]'));
   const generateBtn = document.getElementById("generateBtn");
@@ -76,11 +77,70 @@
   const translateBubble = document.getElementById("translateBubble");
   const translateSource = document.getElementById("translateSource");
   const translateResult = document.getElementById("translateResult");
+  const generateVariantsBtn = document.getElementById("generateVariantsBtn");
+  const clearVariantsBtn = document.getElementById("clearVariantsBtn");
+  const variantsSummary = document.getElementById("variantsSummary");
+  const variantsList = document.getElementById("variantsList");
+  const extractCollocationBtn = document.getElementById("extractCollocationBtn");
+  const collocationSummary = document.getElementById("collocationSummary");
+  const collocationList = document.getElementById("collocationList");
+  const evaluateRetellBtn = document.getElementById("evaluateRetellBtn");
+  const clearRetellBtn = document.getElementById("clearRetellBtn");
+  const retellInput = document.getElementById("retellInput");
+  const retellSummary = document.getElementById("retellSummary");
+  const retellResult = document.getElementById("retellResult");
+  const pronunciationTargetType = document.getElementById("pronunciationTargetType");
+  const pronunciationCustomInput = document.getElementById("pronunciationCustomInput");
+  const preparePronunciationBtn = document.getElementById("preparePronunciationBtn");
+  const playPronunciationSampleBtn = document.getElementById("playPronunciationSampleBtn");
+  const stopPronunciationSampleBtn = document.getElementById("stopPronunciationSampleBtn");
+  const startPronunciationBtn = document.getElementById("startPronunciationBtn");
+  const stopPronunciationBtn = document.getElementById("stopPronunciationBtn");
+  const checkPronunciationBtn = document.getElementById("checkPronunciationBtn");
+  const pronunciationExpected = document.getElementById("pronunciationExpected");
+  const pronunciationHeard = document.getElementById("pronunciationHeard");
+  const pronunciationResult = document.getElementById("pronunciationResult");
+  const shelfSearchInput = document.getElementById("shelfSearchInput");
+  const shelfToneFilter = document.getElementById("shelfToneFilter");
+  const shelfLengthFilter = document.getElementById("shelfLengthFilter");
+  const shelfSortBy = document.getElementById("shelfSortBy");
+  const exportDataBtn = document.getElementById("exportDataBtn");
+  const importDataBtn = document.getElementById("importDataBtn");
+  const importDataInput = document.getElementById("importDataInput");
+  const dashStoriesValue = document.getElementById("dashStoriesValue");
+  const dashPracticeValue = document.getElementById("dashPracticeValue");
+  const dashFlashcardValue = document.getElementById("dashFlashcardValue");
+  const dashRetentionValue = document.getElementById("dashRetentionValue");
+  const dashStreakValue = document.getElementById("dashStreakValue");
+  const dashWeakWords = document.getElementById("dashWeakWords");
+  const dailyMinutesGoal = document.getElementById("dailyMinutesGoal");
+  const dailyWordsGoal = document.getElementById("dailyWordsGoal");
+  const saveGoalBtn = document.getElementById("saveGoalBtn");
+  const resetGoalProgressBtn = document.getElementById("resetGoalProgressBtn");
+  const goalMinuteProgress = document.getElementById("goalMinuteProgress");
+  const goalMinuteText = document.getElementById("goalMinuteText");
+  const goalWordsProgress = document.getElementById("goalWordsProgress");
+  const goalWordsText = document.getElementById("goalWordsText");
+  const dailyGoalSummary = document.getElementById("dailyGoalSummary");
+  const vocabCount = document.getElementById("vocabCount");
+  const storyStats = document.getElementById("storyStats");
+  const backToTopBtn = document.getElementById("backToTopBtn");
+  const confettiCanvas = document.getElementById("confettiCanvas");
+  const themeToggleBtn = document.getElementById("themeToggleBtn");
+  const quizTimerSelect = document.getElementById("quizTimer");
+  const quizTimerDisplay = document.getElementById("quizTimerDisplay");
 
   const SHELF_STORAGE_KEY = "story-builder-shelf-v2";
   const TRANSLATE_CACHE_KEY = "story-builder-translate-cache-v1";
   const READ_SESSION_STORAGE_KEY = "story-builder-read-session-v1";
   const FLASHCARD_STORAGE_KEY = "story-builder-flashcards-v1";
+  const PROGRESS_STORAGE_KEY = "story-builder-progress-v1";
+  const GOAL_STORAGE_KEY = "story-builder-goal-v1";
+  const DRAFT_STORAGE_KEY = "story-builder-draft-v1";
+  const THEME_STORAGE_KEY = "story-builder-theme-v1";
+  const MASTERY_STORAGE_KEY = "story-builder-mastery-v1";
+  const APP_EXPORT_VERSION = 1;
+  const READ_SESSION_PERSIST_THROTTLE_MS = 1800;
 
   const lengthToTargetSentences = {
     short: 10,
@@ -469,6 +529,267 @@
         "They survived the worst stage by planning carefully together.",
       ],
     },
+    horror: {
+      label: "Kinh dị",
+      settingOptions: [
+        "an abandoned hospital at the edge of town",
+        "a dim basement beneath a closed theater",
+        "a foggy cemetery behind a deserted church",
+      ],
+      goalOptions: [
+        "find out what happened to the missing night guard",
+        "escape the building before all exits lock",
+        "solve the message scratched into the wall",
+      ],
+      openings: [
+        "{hero} and {friend} entered {setting} at midnight to {goal}.",
+        "No one else dared to visit {setting}, but {hero} and {friend} needed to {goal}.",
+        "The last message from the missing person led {hero} and {friend} to {setting} to {goal}.",
+      ],
+      pressure: [
+        "Every sound echoed longer than it should have.",
+        "The flashlight flickered, and for a moment they saw nothing.",
+        "Cold air rushed from a direction where no window was open.",
+      ],
+      turningPoints: [
+        "{friend} found a recording that revealed the truth behind the disappearance.",
+        "A locked door opened by itself, and behind it was the answer.",
+        "{hero} realized the pattern in the scratches matched a warning.",
+      ],
+      details: [
+        "They documented everything in {object} so no detail was lost.",
+        "At {setting}, the silence was heavier than any noise.",
+        "They moved back to back, checking every shadow.",
+      ],
+      closings: [
+        "They left before sunrise, carrying evidence no one could deny.",
+        "The truth was terrifying, but they were glad it was no longer hidden.",
+        "Outside {setting}, the morning light felt like a reward.",
+      ],
+    },
+    sports: {
+      label: "Thể thao",
+      settingOptions: [
+        "a local stadium preparing for the regional final",
+        "a training camp in the mountains before the season",
+        "a school gym during the inter-city tournament",
+      ],
+      goalOptions: [
+        "win the championship despite losing a key player",
+        "break their personal record in the final event",
+        "prove that teamwork matters more than talent",
+      ],
+      openings: [
+        "{hero} and {friend} arrived at {setting} determined to {goal}.",
+        "The coach at {setting} told {hero} and {friend} they had one chance to {goal}.",
+        "Before the final whistle, {hero} and {friend} agreed they would {goal}.",
+      ],
+      pressure: [
+        "The opponent was stronger, but they had practiced harder.",
+        "One mistake could mean losing everything they worked for.",
+        "Fatigue hit early, and mental strength became the only advantage.",
+      ],
+      turningPoints: [
+        "{friend} scored an unexpected point that shifted momentum.",
+        "At halftime, {hero} changed the strategy and the team followed.",
+        "A small adjustment in technique made a huge difference.",
+      ],
+      details: [
+        "They reviewed plays using notes in {object} during every break.",
+        "At {setting}, the crowd noise was deafening but focusing was essential.",
+        "They communicated with short signals instead of complex instructions.",
+      ],
+      closings: [
+        "The final score proved that persistence beats raw talent.",
+        "They lifted the trophy together, exhausted but deeply proud.",
+        "The season ended with a record they thought was impossible.",
+      ],
+    },
+    travel: {
+      label: "Du lịch",
+      settingOptions: [
+        "a floating market in Southeast Asia",
+        "a mountain village accessible only by foot",
+        "a coastal town famous for its sunset views",
+      ],
+      goalOptions: [
+        "discover the hidden story behind a local tradition",
+        "complete a travel journal before the trip ends",
+        "find the best local dish and learn its recipe",
+      ],
+      openings: [
+        "{hero} and {friend} started their trip at {setting} hoping to {goal}.",
+        "On the first morning at {setting}, {hero} and {friend} decided to {goal}.",
+        "The guidebook said {setting} was quiet, but {hero} and {friend} came to {goal}.",
+      ],
+      pressure: [
+        "Language barriers made simple tasks surprisingly challenging.",
+        "The bus schedule changed without notice, forcing a new plan.",
+        "Rain delayed their route but revealed a hidden side of the place.",
+      ],
+      turningPoints: [
+        "A friendly local invited them to a festival they did not know about.",
+        "{hero} accidentally took a wrong turn and found the best view.",
+        "{friend} noticed a detail in the architecture that explained the town's history.",
+      ],
+      details: [
+        "They filled {object} with sketches and notes from each stop.",
+        "At {setting}, every conversation taught them something unexpected.",
+        "They tried local food without hesitation and loved every bite.",
+      ],
+      closings: [
+        "They left with full journals and plans to return someday.",
+        "The trip changed their perspective more than any book could.",
+        "On the last night, they agreed this was the best trip they ever had.",
+      ],
+    },
+    cooking: {
+      label: "Ẩm thực",
+      settingOptions: [
+        "a busy kitchen during a cooking competition",
+        "a family restaurant preparing for a food critic visit",
+        "a weekend cooking class with international students",
+      ],
+      goalOptions: [
+        "create an original dish that impresses the judges",
+        "master a traditional recipe under time pressure",
+        "combine two cuisines into one unforgettable plate",
+      ],
+      openings: [
+        "{hero} and {friend} entered {setting} with one clear plan: {goal}.",
+        "At {setting}, the timer started and {hero} told {friend} they had to {goal}.",
+        "The ingredients were ready at {setting} and they had to {goal}.",
+      ],
+      pressure: [
+        "The oven timer was ruthless, and every second mattered.",
+        "One wrong ingredient could ruin the entire dish.",
+        "They ran out of a key spice and had to improvise.",
+      ],
+      turningPoints: [
+        "{friend} suggested adding an unexpected herb that elevated the flavor.",
+        "{hero} remembered a family trick that saved the sauce.",
+        "A taste test from {helper} revealed the dish needed one more layer.",
+      ],
+      details: [
+        "They wrote each step in {object} so the recipe could be repeated.",
+        "At {setting}, the smell alone told them they were on the right track.",
+        "They tasted, adjusted, and tasted again until the balance was perfect.",
+      ],
+      closings: [
+        "The dish was served, and the first bite brought silence then applause.",
+        "They earned praise not for complexity but for honest flavor.",
+        "The recipe became their signature, something they would cook forever.",
+      ],
+    },
+    nature: {
+      label: "Thiên nhiên",
+      settingOptions: [
+        "a national park during migration season",
+        "a coral reef visible only at low tide",
+        "a dense rainforest after weeks of heavy rain",
+      ],
+      goalOptions: [
+        "document a rare species before the season ends",
+        "restore a damaged ecosystem with limited tools",
+        "complete a wildlife survey for the research team",
+      ],
+      openings: [
+        "{hero} and {friend} set up camp at {setting} to {goal}.",
+        "The research station at {setting} assigned {hero} and {friend} to {goal}.",
+        "Before the weather changed, {hero} and {friend} needed to {goal} at {setting}.",
+      ],
+      pressure: [
+        "The animals were unpredictable, so patience was the only tool.",
+        "Weather could shift in minutes, ruining hours of setup.",
+        "They had to work silently to avoid disturbing the habitat.",
+      ],
+      turningPoints: [
+        "{friend} spotted tracks that no one had documented before.",
+        "A sudden clearing in the weather gave them a perfect observation window.",
+        "{hero} identified a pattern in the animal behavior that changed the study.",
+      ],
+      details: [
+        "They recorded every observation in {object} with timestamps.",
+        "At {setting}, the biodiversity was richer than any report predicted.",
+        "They moved carefully, respecting every boundary the ecosystem set.",
+      ],
+      closings: [
+        "Their data filled a gap that researchers had struggled with for years.",
+        "They returned to camp with photographs that told a complete story.",
+        "The ecosystem showed signs of recovery, and their work contributed to it.",
+      ],
+    },
+    detective: {
+      label: "Trinh thám",
+      settingOptions: [
+        "a private investigation office in the old district",
+        "a crime scene inside a luxury hotel",
+        "a suspect's apartment with too many locked drawers",
+      ],
+      goalOptions: [
+        "identify the real culprit before the case goes cold",
+        "find the missing evidence that connects all suspects",
+        "prove an innocent person was wrongly accused",
+      ],
+      openings: [
+        "{hero} and {friend} were called to {setting} to {goal}.",
+        "The case file landed on {hero}'s desk, and {friend} agreed to help {goal}.",
+        "At {setting}, {hero} and {friend} had 48 hours to {goal}.",
+      ],
+      pressure: [
+        "Every witness told a slightly different version of the same event.",
+        "The clock was ticking, and the suspect could disappear any moment.",
+        "Someone was watching them, making every move feel exposed.",
+      ],
+      turningPoints: [
+        "A fingerprint on {object} matched someone nobody suspected.",
+        "{friend} cross-referenced two alibis and found a fatal contradiction.",
+        "{hero} revisited the crime scene and noticed what everyone else missed.",
+      ],
+      details: [
+        "They pinned every clue to a board and connected them with string.",
+        "At {setting}, {hero} interviewed witnesses while {friend} checked records.",
+        "They worked methodically, never jumping to conclusions.",
+      ],
+      closings: [
+        "The case closed with undeniable evidence and a clear confession.",
+        "The innocent person was freed, and the real culprit faced justice.",
+        "Their report became a reference for future investigations.",
+      ],
+    },
+  };
+
+  const cefrConfig = {
+    a1: {
+      label: "A1",
+      maxWordsPerSentence: 10,
+      connectors: ["and", "but", "so", "then"],
+      sentencePrefix: "",
+    },
+    a2: {
+      label: "A2",
+      maxWordsPerSentence: 14,
+      connectors: ["and", "but", "so", "because", "then", "after that"],
+      sentencePrefix: "",
+    },
+    b1: {
+      label: "B1",
+      maxWordsPerSentence: 20,
+      connectors: ["however", "although", "therefore", "meanwhile", "as a result"],
+      sentencePrefix: "",
+    },
+    b2: {
+      label: "B2",
+      maxWordsPerSentence: 28,
+      connectors: ["consequently", "nevertheless", "furthermore", "in contrast", "subsequently"],
+      sentencePrefix: "",
+    },
+    c1: {
+      label: "C1",
+      maxWordsPerSentence: 40,
+      connectors: ["notwithstanding", "inasmuch as", "insofar as", "henceforth", "thereby", "wherein"],
+      sentencePrefix: "",
+    },
   };
 
   const wordSentenceTemplates = [
@@ -618,9 +939,24 @@
     memoryReveal: false,
     memoryMasteredCount: 0,
     hoverSentenceIndex: -1,
+    storyVariants: [],
+    collocations: [],
+    adaptiveLevel: 1,
+    progress: createDefaultProgress(),
+    goals: createDefaultGoals(),
+    pronunciationSupported: false,
+    pronunciationRecognition: null,
+    pronunciationListening: false,
+    pronunciationSamplePlaying: false,
+    pronunciationSampleToken: 0,
+    pronunciationExpectedText: "",
+    pronunciationTranscript: "",
+    sessionStartedAt: Date.now(),
+    lastReadSessionPersistAt: 0,
   };
 
   let hoverTimerId = 0;
+  let mouseOutTimerId = 0;
 
   initialize();
 
@@ -645,10 +981,13 @@
     nextSentenceBtn.addEventListener("click", () => handleStepSentence(1));
     repeatLoopCount.addEventListener("change", handleRepeatLoopChange);
     readVoice.addEventListener("change", handleVoiceChange);
-    readSpeed.addEventListener("change", () => persistReadSession());
+    readSpeed.addEventListener("change", () => persistReadSession({ force: true }));
     buildPracticeBtn.addEventListener("click", handleBuildPractice);
     checkPracticeBtn.addEventListener("click", handleCheckPractice);
     resetPracticeBtn.addEventListener("click", handleResetPractice);
+    generateVariantsBtn.addEventListener("click", handleGenerateVariants);
+    clearVariantsBtn.addEventListener("click", handleClearVariants);
+    extractCollocationBtn.addEventListener("click", handleExtractCollocations);
     startMemoryBtn.addEventListener("click", handleStartMemory);
     revealMemoryBtn.addEventListener("click", handleRevealMemory);
     memoryKnownBtn.addEventListener("click", () => handleMemoryFeedback(true));
@@ -667,11 +1006,30 @@
     rateHardBtn.addEventListener("click", () => handleRateFlashcard("hard"));
     rateGoodBtn.addEventListener("click", () => handleRateFlashcard("good"));
     rateEasyBtn.addEventListener("click", () => handleRateFlashcard("easy"));
+    evaluateRetellBtn.addEventListener("click", handleEvaluateRetell);
+    clearRetellBtn.addEventListener("click", handleClearRetell);
+    preparePronunciationBtn.addEventListener("click", handlePreparePronunciationTarget);
+    playPronunciationSampleBtn.addEventListener("click", handlePlayPronunciationSample);
+    stopPronunciationSampleBtn.addEventListener("click", handleStopPronunciationSample);
+    startPronunciationBtn.addEventListener("click", handleStartPronunciation);
+    stopPronunciationBtn.addEventListener("click", handleStopPronunciation);
+    checkPronunciationBtn.addEventListener("click", handleCheckPronunciation);
+    pronunciationTargetType.addEventListener("change", handlePronunciationTargetTypeChange);
     copyBtn.addEventListener("click", handleCopyStory);
     downloadBtn.addEventListener("click", handleDownloadCurrentStory);
     saveStoryBtn.addEventListener("click", handleSaveStory);
     clearShelfBtn.addEventListener("click", handleClearShelf);
     shelfList.addEventListener("click", handleShelfAction);
+    variantsList.addEventListener("click", handleVariantAction);
+    shelfSearchInput.addEventListener("input", renderShelf);
+    shelfToneFilter.addEventListener("change", renderShelf);
+    shelfLengthFilter.addEventListener("change", renderShelf);
+    shelfSortBy.addEventListener("change", renderShelf);
+    saveGoalBtn.addEventListener("click", handleSaveGoals);
+    resetGoalProgressBtn.addEventListener("click", handleResetTodayGoalProgress);
+    exportDataBtn.addEventListener("click", handleExportData);
+    importDataBtn.addEventListener("click", () => importDataInput.click());
+    importDataInput.addEventListener("change", handleImportDataFile);
 
     storyOutput.addEventListener("mouseover", handleWordHover);
     storyOutput.addEventListener("mouseout", handleWordMouseOut);
@@ -697,6 +1055,13 @@
       if (event.key === "Escape") {
         hideTranslateBubble();
       }
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        const focused = document.activeElement;
+        if (focused === vocabInput || focused === storyTitle) {
+          event.preventDefault();
+          handleGenerateStory();
+        }
+      }
     });
 
     document.addEventListener("click", handleHelpToggle);
@@ -705,7 +1070,10 @@
     loadShelfFromStorage();
     loadReadSession();
     loadFlashcards();
+    loadProgressData();
+    loadGoalData();
     state.speechSupported = supportsSpeech();
+    state.pronunciationSupported = supportsSpeechRecognition();
     if (!state.speechSupported) {
       readStoryBtn.disabled = true;
       pauseReadBtn.disabled = true;
@@ -733,22 +1101,67 @@
       } else {
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
+      preWarmSpeechEngine();
     }
+    if (state.pronunciationSupported) {
+      setupPronunciationRecognition();
+    }
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener("click", handleThemeToggle);
+      loadTheme();
+    }
+
+    loadWordMastery();
     updatePracticeControls();
     updateMemoryUI();
     updateDictationControls();
     updateFlashcardUI();
+    updateDashboard();
+    updateGoalUI();
+    renderVariants();
+    renderCollocations();
+    updatePronunciationUI();
+    updateAdaptivePracticeUI();
     syncRepeatUI();
     syncRepeatLoopUI();
     updateReadControls();
     updateReadProgress({ reset: true });
     clearSentenceModelOutput();
+    resetRetellUI();
+    handlePronunciationTargetTypeChange();
     refreshGenreCards();
     renderShelf();
 
-    window.addEventListener("beforeunload", () => {
-      stopReading({ silent: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        recordSessionMinutes();
+      } else {
+        state.sessionStartedAt = Date.now();
+      }
     });
+
+    window.addEventListener("beforeunload", () => {
+      recordSessionMinutes();
+      stopReading({ silent: true });
+      saveDraft();
+    });
+
+    vocabInput.addEventListener("input", () => {
+      updateVocabCount();
+      scheduleDraftSave();
+    });
+    storyTitle.addEventListener("input", scheduleDraftSave);
+
+    if (backToTopBtn) {
+      window.addEventListener("scroll", handleScrollForBackToTop, { passive: true });
+      backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    loadDraft();
+    updateVocabCount();
   }
 
   function handleGenerateStory() {
@@ -778,10 +1191,20 @@
     resetFlashcardReviewSession();
     updateFlashcardUI();
     clearSentenceModelOutput();
+    handleClearVariants({ silent: true });
+    updateCollocationsForStory(story);
+    resetRetellUI();
+    resetPronunciationState({
+      message: "Đã tạo truyện mới. Nạp mục tiêu để luyện phát âm.",
+    });
 
     if (!storyTitle.value.trim()) {
       storyTitle.value = suggestTitle(words, tone);
     }
+
+    recordStoryGeneration(words.length);
+    updateStoryStats(story);
+    saveDraft();
   }
 
   function handleClearForm() {
@@ -805,8 +1228,15 @@
     resetFlashcardReviewSession();
     updateFlashcardUI();
     clearSentenceModelOutput();
+    handleClearVariants({ silent: true });
+    clearCollocationState("Tạo truyện rồi bấm Trích cụm từ.");
+    resetRetellUI();
+    resetPronunciationState();
     updateReadControls();
     updateReadProgress({ reset: true });
+    updateVocabCount();
+    updateStoryStats("");
+    saveDraft();
   }
 
   async function handleCopyStory() {
@@ -860,6 +1290,13 @@
   }
 
   function handleClearShelf() {
+    if (state.shelf.length === 0) {
+      coverageSummary.textContent = "Tủ sách đang trống.";
+      return;
+    }
+    if (!window.confirm(`Bạn có chắc muốn xóa toàn bộ ${state.shelf.length} truyện trong tủ sách?`)) {
+      return;
+    }
     state.shelf = [];
     persistShelf();
     renderShelf();
@@ -917,7 +1354,8 @@
     }
 
     window.clearTimeout(hoverTimerId);
-    window.setTimeout(() => {
+    window.clearTimeout(mouseOutTimerId);
+    mouseOutTimerId = window.setTimeout(() => {
       if (!translateBubble.matches(":hover")) {
         hideTranslateBubble();
       }
@@ -1013,16 +1451,18 @@
     translateResult.textContent = result;
     translateBubble.classList.remove("hidden");
 
-    const padding = 10;
-    const left = position.x + 12;
-    const top = position.y + 12;
-    const bubbleWidth = translateBubble.offsetWidth;
-    const bubbleHeight = translateBubble.offsetHeight;
-    const clampedLeft = Math.min(Math.max(padding, left), window.innerWidth - bubbleWidth - padding);
-    const clampedTop = Math.min(Math.max(padding, top), window.innerHeight - bubbleHeight - padding);
+    window.requestAnimationFrame(() => {
+      const padding = 10;
+      const left = position.x + 12;
+      const top = position.y + 12;
+      const bubbleWidth = translateBubble.offsetWidth;
+      const bubbleHeight = translateBubble.offsetHeight;
+      const clampedLeft = Math.min(Math.max(padding, left), window.innerWidth - bubbleWidth - padding);
+      const clampedTop = Math.min(Math.max(padding, top), window.innerHeight - bubbleHeight - padding);
 
-    translateBubble.style.left = `${clampedLeft}px`;
-    translateBubble.style.top = `${clampedTop}px`;
+      translateBubble.style.left = `${clampedLeft}px`;
+      translateBubble.style.top = `${clampedTop}px`;
+    });
   }
 
   function hideTranslateBubble() {
@@ -1154,7 +1594,7 @@
 
   function handleVoiceChange() {
     state.selectedVoiceUri = readVoice.value || "";
-    persistReadSession();
+    persistReadSession({ force: true });
   }
 
   function handleRepeatLoopChange() {
@@ -1162,7 +1602,7 @@
     state.repeatLoopTarget = Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
     state.repeatLoopCompleted = 0;
     syncRepeatLoopUI();
-    persistReadSession();
+    persistReadSession({ force: true });
   }
 
   function handleStepSentence(delta) {
@@ -1199,14 +1639,194 @@
       state.currentSentenceIndex = nextIndex;
       setActiveSentence(nextIndex);
       updateReadControls();
-      persistReadSession();
+      persistReadSession({ force: true });
       coverageSummary.textContent = `Đã đổi vị trí tạm dừng đến câu ${nextIndex + 1}.`;
       return;
     }
 
     updateReadControls();
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = `Đã chọn câu ${nextIndex + 1}.`;
+  }
+
+  function handleGenerateVariants() {
+    if (!Array.isArray(state.words) || state.words.length === 0) {
+      variantsSummary.textContent = "Nhập từ vựng hoặc tạo truyện trước khi tạo biến thể.";
+      return;
+    }
+
+    const toneKeys = Object.keys(toneConfig).filter((key) => key !== state.tone);
+    const randomTone = toneKeys.length > 0 ? pickRandom(toneKeys) : state.tone;
+    const plan = [
+      { tone: state.tone, length: "short", label: "Biến thể ngắn" },
+      { tone: state.tone, length: "long", label: "Biến thể dài" },
+      { tone: randomTone, length: state.length || "medium", label: "Biến thể đổi thể loại" },
+    ];
+
+    state.storyVariants = plan.map((item, index) => ({
+      id: generateId(),
+      tone: item.tone,
+      length: item.length,
+      label: item.label,
+      story: buildStory(state.words, item.tone, item.length),
+      index: index + 1,
+    }));
+
+    renderVariants();
+    variantsSummary.textContent = `Đã tạo ${state.storyVariants.length} biến thể.`;
+    addDailyMinutes(2);
+    persistProgressData();
+    updateDashboard();
+    updateGoalUI();
+  }
+
+  function handleClearVariants(options) {
+    const silent = options?.silent === true;
+    state.storyVariants = [];
+    renderVariants();
+    variantsSummary.textContent = silent ? "Chưa tạo biến thể." : "Đã xóa toàn bộ biến thể.";
+  }
+
+  function handleVariantAction(event) {
+    const openBtn = event.target.closest(".variant-open");
+    if (!openBtn) {
+      return;
+    }
+
+    const variantId = openBtn.dataset.variantId || "";
+    if (!variantId) {
+      return;
+    }
+
+    const variant = state.storyVariants.find((item) => item.id === variantId);
+    if (!variant) {
+      return;
+    }
+
+    stopReading({ silent: true });
+    state.tone = variant.tone;
+    state.length = variant.length;
+    state.plainStory = variant.story;
+    storyOutput.classList.remove("empty");
+    renderStoryOutput(variant.story, state.words);
+    renderCoverage(state.words, variant.story);
+    updateCollocationsForStory(variant.story);
+    clearPracticeState('Đã mở biến thể. Bấm "Tạo bài luyện" để tạo câu hỏi.');
+    clearMemoryState("Đã mở biến thể. Bấm 'Bắt đầu' để nhớ nhanh.");
+    clearDictationState("Đã mở biến thể. Bấm 'Tạo bộ nghe chép' để luyện.");
+    resetFlashcardReviewSession();
+    updateFlashcardUI();
+    clearSentenceModelOutput();
+    resetRetellUI();
+    resetPronunciationState({
+      message: "Đã mở biến thể. Nạp mục tiêu rồi luyện phát âm.",
+    });
+    setSelectedTone(variant.tone);
+    storyLength.value = variant.length;
+    storyTitle.value = `${suggestTitle(state.words, variant.tone)} [V${variant.index}]`;
+    coverageSummary.textContent = `Đã mở ${variant.label.toLowerCase()}.`;
+  }
+
+  function renderVariants() {
+    variantsList.innerHTML = "";
+    if (!Array.isArray(state.storyVariants) || state.storyVariants.length === 0) {
+      return;
+    }
+
+    state.storyVariants.forEach((item) => {
+      const li = document.createElement("li");
+      li.className = "variant-item";
+      const toneLabel = toneConfig[item.tone]?.label || item.tone;
+      li.innerHTML = `
+        <strong>${escapeHtml(item.label)}</strong>
+        <p class="variant-meta">${escapeHtml(toneLabel)} • ${escapeHtml(item.length)}</p>
+        <p>${escapeHtml(truncate(item.story.replace(/\s+/g, " "), 120))}</p>
+        <button class="btn ghost variant-open" type="button" data-variant-id="${escapeHtml(item.id)}">Mở biến thể</button>
+      `;
+      variantsList.appendChild(li);
+    });
+  }
+
+  function handleExtractCollocations() {
+    if (!state.plainStory) {
+      collocationSummary.textContent = "Tạo truyện trước khi trích cụm từ.";
+      return;
+    }
+    updateCollocationsForStory(state.plainStory);
+  }
+
+  function updateCollocationsForStory(story) {
+    const items = extractCollocationsFromStory(story);
+    state.collocations = items;
+    renderCollocations();
+    if (items.length === 0) {
+      collocationSummary.textContent = "Không tìm thấy cụm từ phù hợp.";
+      return;
+    }
+    collocationSummary.textContent = `Đã trích ${items.length} cụm từ nổi bật.`;
+  }
+
+  function clearCollocationState(message) {
+    state.collocations = [];
+    renderCollocations();
+    if (message) {
+      collocationSummary.textContent = message;
+    }
+  }
+
+  function renderCollocations() {
+    collocationList.innerHTML = "";
+    if (!Array.isArray(state.collocations) || state.collocations.length === 0) {
+      return;
+    }
+
+    state.collocations.forEach((item) => {
+      const li = document.createElement("li");
+      li.className = "collocation-item";
+      li.innerHTML = `
+        <strong>${escapeHtml(item.phrase)}</strong>
+        <span class="variant-meta">Lặp: ${item.count} • Ví dụ: ${escapeHtml(truncate(item.example, 72))}</span>
+      `;
+      collocationList.appendChild(li);
+    });
+  }
+
+  function extractCollocationsFromStory(story) {
+    if (!story) {
+      return [];
+    }
+
+    const sentences = splitStoryIntoSentences(story.replace(/\n+/g, " "));
+    const counters = new Map();
+
+    sentences.forEach((sentence) => {
+      const tokens = (sentence.match(/[A-Za-z][A-Za-z'-]*/g) || []).map((token) => normalize(token));
+      if (tokens.length < 2) {
+        return;
+      }
+      for (let size = 2; size <= 3; size += 1) {
+        for (let i = 0; i <= tokens.length - size; i += 1) {
+          const slice = tokens.slice(i, i + size);
+          const nonStop = slice.filter((token) => !COMMON_STOPWORDS.has(token));
+          if (nonStop.length < 2) {
+            continue;
+          }
+          const phrase = slice.join(" ");
+          const current = counters.get(phrase) || { phrase, count: 0, example: sentence.trim() };
+          current.count += 1;
+          counters.set(phrase, current);
+        }
+      }
+    });
+
+    return [...counters.values()]
+      .sort((a, b) => {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+        return b.phrase.length - a.phrase.length;
+      })
+      .slice(0, 10);
   }
 
   function handleBuildPractice() {
@@ -1216,7 +1836,10 @@
     }
 
     const mode = practiceType.value || "fill_blank";
-    const questions = buildPracticeQuestions(state.plainStory, state.words, mode);
+    const questions = buildPracticeQuestions(state.plainStory, state.words, mode, {
+      adaptiveLevel: state.adaptiveLevel,
+      weakWords: getWeakWords(8).map((item) => item.word),
+    });
     state.practiceMode = mode;
     state.practiceItems = questions;
     renderPracticeItems();
@@ -1232,7 +1855,8 @@
         : mode === "true_false"
           ? "đúng/sai"
           : "điền từ";
-    practiceSummary.textContent = `Đã tạo ${questions.length} câu hỏi (${label}).`;
+    practiceSummary.textContent = `Đã tạo ${questions.length} câu hỏi (${label}) | Adaptive level: ${state.adaptiveLevel}.`;
+    startQuizTimer();
   }
 
   function handleCheckPractice() {
@@ -1243,9 +1867,11 @@
 
     const nodes = Array.from(practiceList.querySelectorAll(".practice-item"));
     let correct = 0;
+    const wordFeedback = [];
     nodes.forEach((node) => {
       const questionType = node.dataset.type || "fill_blank";
       const answer = node.dataset.answer || "";
+      const focusWord = node.dataset.word || answer;
       const answerLabel = node.querySelector(".practice-answer");
       let isCorrect = false;
 
@@ -1278,11 +1904,18 @@
       if (isCorrect) {
         correct += 1;
       }
+      wordFeedback.push({ word: focusWord, correct: isCorrect });
     });
 
     const total = state.practiceItems.length;
     const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
-    practiceSummary.textContent = `Kết quả: ${correct}/${total} (${percent}%).`;
+    updateAdaptiveLevel(percent);
+    recordPracticePerformance(correct, total, percent, wordFeedback);
+    addDailyMinutes(5);
+    addDailyWords(total);
+    practiceSummary.textContent = `Kết quả: ${correct}/${total} (${percent}%) | Adaptive level: ${state.adaptiveLevel}.`;
+    stopQuizTimer();
+    updateWordMastery(wordFeedback);
   }
 
   function handleResetPractice() {
@@ -1461,7 +2094,9 @@
     };
 
     window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    window.setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 50);
   }
 
   function handleCheckDictation() {
@@ -1491,6 +2126,8 @@
     dictationResult.textContent = isPerfect
       ? "Chính xác 100%."
       : `Độ chính xác ước tính: ${score}%.`;
+    recordDictationPerformance(score);
+    addDailyWords(expectedTokens.length);
   }
 
   function handleShowDictationAnswer() {
@@ -1546,6 +2183,415 @@
     updateDictationControls();
   }
 
+  function handleEvaluateRetell() {
+    if (!state.plainStory) {
+      retellSummary.textContent = "Tạo truyện trước khi chấm Retell.";
+      return;
+    }
+
+    const userText = retellInput.value.replace(/\s+/g, " ").trim();
+    if (userText.length < 30) {
+      retellSummary.textContent = "Bài retell còn quá ngắn. Hãy viết ít nhất 3 câu.";
+      return;
+    }
+
+    const sourceTokens = tokenizeForCompare(state.plainStory);
+    const userTokens = tokenizeForCompare(userText);
+    const sourceSet = new Set(sourceTokens);
+    const userSet = new Set(userTokens);
+    const overlapCount = [...userSet].filter((token) => sourceSet.has(token)).length;
+    const lexicalOverlap = userSet.size > 0 ? Math.round((overlapCount / userSet.size) * 100) : 0;
+    const vocabHit = state.words.filter((word) => hasWord(userText, word)).length;
+    const vocabCoverage = state.words.length > 0 ? Math.round((vocabHit / state.words.length) * 100) : 0;
+    const sentenceCount = splitStoryIntoSentences(userText).length;
+    const structureScore = sentenceCount >= 3 ? 100 : sentenceCount === 2 ? 70 : 45;
+    const score = Math.round(vocabCoverage * 0.5 + lexicalOverlap * 0.35 + structureScore * 0.15);
+
+    const suggestions = [];
+    if (vocabCoverage < 70) {
+      suggestions.push("Thêm nhiều từ vựng mục tiêu hơn vào bài retell.");
+    }
+    if (lexicalOverlap < 55) {
+      suggestions.push("Bám sát hơn các ý chính (bối cảnh, mục tiêu, kết quả).");
+    }
+    if (sentenceCount < 3) {
+      suggestions.push("Tăng số câu để bài kể lại rõ mạch hơn.");
+    }
+    if (suggestions.length === 0) {
+      suggestions.push("Bài retell tốt. Có thể thử viết bản ngắn hơn nhưng vẫn giữ đủ ý.");
+    }
+
+    retellResult.classList.remove("empty");
+    retellResult.innerHTML = `
+      <p><strong>Điểm Retell:</strong> ${score}%</p>
+      <p>Phủ từ vựng mục tiêu: ${vocabHit}/${state.words.length} (${vocabCoverage}%)</p>
+      <p>Bám ý theo từ khóa: ${lexicalOverlap}%</p>
+      <p>Số câu bạn viết: ${sentenceCount}</p>
+      <p><strong>Gợi ý cải thiện:</strong></p>
+      <ol>${suggestions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+    `;
+    retellSummary.textContent = `Đã chấm retell: ${score}%.`;
+    recordRetellPerformance(score, vocabCoverage);
+    addDailyMinutes(4);
+    addDailyWords(vocabHit);
+  }
+
+  function handleClearRetell() {
+    retellInput.value = "";
+    resetRetellUI();
+  }
+
+  function resetRetellUI() {
+    retellResult.classList.add("empty");
+    retellResult.textContent = "Kết quả chấm Retell sẽ hiển thị ở đây.";
+    retellSummary.textContent = "Tạo truyện trước, rồi viết lại để chấm.";
+  }
+
+  function resetPronunciationState(options) {
+    const message = typeof options?.message === "string" ? options.message : "";
+    const shouldResetMessage = options?.resetMessage !== false;
+
+    if (state.pronunciationRecognition && state.pronunciationListening) {
+      try {
+        state.pronunciationRecognition.abort();
+      } catch {
+        // Ignore recognition abort errors.
+      }
+    }
+
+    if (
+      state.pronunciationSamplePlaying ||
+      (state.speechSupported && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
+    ) {
+      state.pronunciationSampleToken += 1;
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // Ignore synthesis cancel errors.
+      }
+    }
+
+    state.pronunciationListening = false;
+    state.pronunciationSamplePlaying = false;
+    state.pronunciationExpectedText = "";
+    state.pronunciationTranscript = "";
+
+    if (message) {
+      pronunciationResult.textContent = message;
+    } else if (shouldResetMessage) {
+      pronunciationResult.textContent = "Chưa chấm.";
+    }
+    updatePronunciationUI();
+  }
+
+  function handlePronunciationTargetTypeChange() {
+    updatePronunciationUI();
+  }
+
+  function supportsSpeechRecognition() {
+    return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
+  function setupPronunciationRecognition() {
+    if (!state.pronunciationSupported) {
+      return;
+    }
+    const RecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!RecognitionCtor) {
+      return;
+    }
+
+    const recognition = new RecognitionCtor();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      state.pronunciationListening = true;
+      pronunciationResult.textContent = "Đang nghe... hãy đọc rõ mục tiêu.";
+      updatePronunciationUI();
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results || [])
+        .map((result) => (result && result[0] ? result[0].transcript : ""))
+        .join(" ")
+        .trim();
+      state.pronunciationTranscript = transcript;
+      pronunciationHeard.textContent = transcript
+        ? `Bạn nói: ${transcript}`
+        : "Bạn nói: chưa có dữ liệu.";
+      updatePronunciationUI();
+    };
+
+    recognition.onerror = (event) => {
+      const code = event?.error || "unknown";
+      state.pronunciationListening = false;
+      let message = `Không nhận diện được giọng nói (${code}).`;
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        message =
+          "Microphone bị chặn quyền truy cập. Hãy cho phép mic trên trình duyệt rồi thử lại.";
+      } else if (code === "no-speech") {
+        message = "Không thu được tiếng nói. Hãy nói gần mic hơn và thử lại.";
+      } else if (code === "audio-capture") {
+        message = "Không tìm thấy thiết bị micro khả dụng.";
+      }
+      pronunciationResult.textContent = message;
+      updatePronunciationUI();
+    };
+
+    recognition.onend = () => {
+      state.pronunciationListening = false;
+      if (!state.pronunciationTranscript) {
+        pronunciationResult.textContent =
+          "Đã dừng ghi âm nhưng chưa nhận được transcript. Hãy thử lại và nói rõ hơn.";
+      }
+      updatePronunciationUI();
+    };
+
+    state.pronunciationRecognition = recognition;
+  }
+
+  function handlePreparePronunciationTarget() {
+    let target = "";
+    const targetMode = pronunciationTargetType.value;
+    if (targetMode === "custom") {
+      target = pronunciationCustomInput.value.replace(/\s+/g, " ").trim();
+    } else if (targetMode === "random_vocab") {
+      target = Array.isArray(state.words) && state.words.length > 0 ? pickRandom(state.words) : "";
+    } else {
+      const index = normalizeSentenceIndex(state.selectedSentenceIndex);
+      target = index >= 0 ? state.readSentenceQueue[index] || "" : "";
+    }
+
+    target = target.replace(/\s+/g, " ").trim();
+    state.pronunciationExpectedText = target;
+    state.pronunciationTranscript = "";
+
+    if (!target) {
+      pronunciationResult.textContent = "Không lấy được mục tiêu phát âm. Hãy chọn lại.";
+      updatePronunciationUI();
+      return;
+    }
+
+    pronunciationResult.textContent = "Đã nạp mục tiêu, bấm Bắt đầu ghi âm.";
+    updatePronunciationUI();
+  }
+
+  function handlePlayPronunciationSample() {
+    if (!state.speechSupported) {
+      pronunciationResult.textContent = "Trình duyệt không hỗ trợ phát âm mẫu.";
+      updatePronunciationUI();
+      return;
+    }
+    if (state.pronunciationSamplePlaying) {
+      handleStopPronunciationSample();
+      return;
+    }
+    if (!state.pronunciationExpectedText) {
+      handlePreparePronunciationTarget();
+      if (!state.pronunciationExpectedText) {
+        return;
+      }
+    }
+
+    if (state.pronunciationListening) {
+      handleStopPronunciation();
+    }
+
+    if (state.readState === "playing" || state.readState === "paused") {
+      stopReading({ silent: true });
+    }
+
+    state.pronunciationSampleToken += 1;
+    const token = state.pronunciationSampleToken;
+    const utterance = new SpeechSynthesisUtterance(state.pronunciationExpectedText);
+    utterance.lang = "en-US";
+    const baseRate = Number.parseFloat(readSpeed.value) || 1;
+    utterance.rate = Math.min(1, Math.max(0.8, baseRate - 0.05));
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    const selectedVoice = pickCurrentVoice();
+    if (selectedVoice && selectedVoice.voiceURI) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang || utterance.lang;
+    }
+
+    utterance.onstart = () => {
+      if (token !== state.pronunciationSampleToken) {
+        return;
+      }
+      state.pronunciationSamplePlaying = true;
+      pronunciationResult.textContent = "Đang phát mẫu. Nghe xong thì bấm Bắt đầu ghi âm.";
+      updatePronunciationUI();
+    };
+
+    utterance.onend = () => {
+      if (token !== state.pronunciationSampleToken) {
+        return;
+      }
+      state.pronunciationSamplePlaying = false;
+      pronunciationResult.textContent = "Phát mẫu xong. Bấm Bắt đầu ghi âm để luyện.";
+      updatePronunciationUI();
+    };
+
+    utterance.onerror = () => {
+      if (token !== state.pronunciationSampleToken) {
+        return;
+      }
+      state.pronunciationSamplePlaying = false;
+      pronunciationResult.textContent = "Không phát được âm mẫu. Hãy đổi giọng đọc và thử lại.";
+      updatePronunciationUI();
+    };
+
+    state.pronunciationSamplePlaying = true;
+    updatePronunciationUI();
+    try {
+      window.speechSynthesis.cancel();
+      if (typeof window.speechSynthesis.resume === "function") {
+        window.speechSynthesis.resume();
+      }
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      state.pronunciationSamplePlaying = false;
+      pronunciationResult.textContent = "Không thể phát âm mẫu lúc này.";
+      updatePronunciationUI();
+    }
+  }
+
+  function handleStopPronunciationSample() {
+    state.pronunciationSampleToken += 1;
+    if (
+      state.pronunciationSamplePlaying &&
+      state.speechSupported &&
+      (window.speechSynthesis.speaking || window.speechSynthesis.pending)
+    ) {
+      window.speechSynthesis.cancel();
+    }
+    if (state.pronunciationSamplePlaying) {
+      state.pronunciationSamplePlaying = false;
+      pronunciationResult.textContent = "Đã dừng phát mẫu.";
+    }
+    updatePronunciationUI();
+  }
+
+  function handleStartPronunciation() {
+    if (!state.pronunciationSupported || !state.pronunciationRecognition) {
+      pronunciationResult.textContent = "SpeechRecognition không khả dụng trên trình duyệt này.";
+      updatePronunciationUI();
+      return;
+    }
+    if (state.pronunciationListening) {
+      pronunciationResult.textContent = "Đang ghi âm, hãy bấm Dừng ghi âm trước.";
+      updatePronunciationUI();
+      return;
+    }
+    if (state.pronunciationSamplePlaying) {
+      handleStopPronunciationSample();
+    }
+    if (!state.pronunciationExpectedText) {
+      handlePreparePronunciationTarget();
+      if (!state.pronunciationExpectedText) {
+        return;
+      }
+    }
+
+    try {
+      state.pronunciationTranscript = "";
+      pronunciationHeard.textContent = "Bạn nói: đang chờ dữ liệu...";
+      pronunciationResult.textContent = "Đang chuẩn bị mở mic...";
+      updatePronunciationUI();
+      state.pronunciationRecognition.start();
+    } catch {
+      pronunciationResult.textContent = "Không thể bắt đầu ghi âm lúc này. Thử lại sau 1-2 giây.";
+      updatePronunciationUI();
+    }
+  }
+
+  function handleStopPronunciation() {
+    if (!state.pronunciationRecognition || !state.pronunciationListening) {
+      return;
+    }
+    try {
+      state.pronunciationRecognition.stop();
+      pronunciationResult.textContent = "Đang dừng ghi âm...";
+      updatePronunciationUI();
+    } catch {
+      // Ignore stop errors.
+    }
+  }
+
+  function handleCheckPronunciation() {
+    if (!state.pronunciationExpectedText) {
+      pronunciationResult.textContent = "Bạn chưa nạp mục tiêu phát âm.";
+      return;
+    }
+
+    const expectedTokens = tokenizeForCompare(state.pronunciationExpectedText);
+    const spokenTokens = tokenizeForCompare(state.pronunciationTranscript);
+    if (expectedTokens.length === 0) {
+      pronunciationResult.textContent = "Không có dữ liệu mục tiêu để chấm.";
+      return;
+    }
+    if (spokenTokens.length === 0) {
+      pronunciationResult.textContent = "Chưa ghi nhận giọng nói, hãy bấm Bắt đầu ghi âm.";
+      return;
+    }
+
+    const distance = levenshteinDistance(expectedTokens, spokenTokens);
+    const maxLen = Math.max(expectedTokens.length, spokenTokens.length, 1);
+    const score = Math.max(0, Math.round((1 - distance / maxLen) * 100));
+    const feedback =
+      score >= 90
+        ? "Rất tốt, gần như trùng hoàn toàn."
+        : score >= 70
+          ? "Ổn, cần nhấn rõ thêm ở các từ dài."
+          : "Cần luyện lại, thử đọc chậm và tách từ rõ hơn.";
+    pronunciationResult.textContent = `Điểm phát âm (theo transcript): ${score}%. ${feedback}`;
+    recordPronunciationPerformance(score);
+    addDailyWords(expectedTokens.length);
+    updatePronunciationUI();
+  }
+
+  function updatePronunciationUI() {
+    const supportedRecognition = state.pronunciationSupported;
+    const canPlaySample = state.speechSupported;
+    const hasExpected = Boolean(state.pronunciationExpectedText);
+    const isListening = state.pronunciationListening;
+    const isSamplePlaying = state.pronunciationSamplePlaying;
+
+    pronunciationExpected.textContent = hasExpected
+      ? `Mục tiêu: ${state.pronunciationExpectedText}`
+      : "Mục tiêu: chưa có.";
+    pronunciationHeard.textContent = state.pronunciationTranscript
+      ? `Bạn nói: ${state.pronunciationTranscript}`
+      : "Bạn nói: chưa có dữ liệu.";
+
+    preparePronunciationBtn.disabled = false;
+    pronunciationTargetType.disabled = false;
+    playPronunciationSampleBtn.disabled = !canPlaySample || !hasExpected || isListening;
+    stopPronunciationSampleBtn.disabled = !canPlaySample || !isSamplePlaying;
+    playPronunciationSampleBtn.textContent = isSamplePlaying ? "Đang phát mẫu..." : "Nghe mẫu";
+    pronunciationCustomInput.disabled = pronunciationTargetType.value !== "custom" || isListening;
+
+    if (!supportedRecognition) {
+      startPronunciationBtn.disabled = true;
+      stopPronunciationBtn.disabled = true;
+      checkPronunciationBtn.disabled = true;
+      if (!isSamplePlaying && !isListening && !state.pronunciationTranscript) {
+        pronunciationResult.textContent =
+          "Trình duyệt không hỗ trợ chấm mic. Bạn vẫn có thể dùng nút Nghe mẫu để luyện.";
+      }
+      return;
+    }
+
+    startPronunciationBtn.disabled = isListening || isSamplePlaying;
+    stopPronunciationBtn.disabled = !isListening;
+    checkPronunciationBtn.disabled = !hasExpected || !state.pronunciationTranscript || isListening;
+  }
+
   async function handleSeedFlashcards() {
     if (!Array.isArray(state.words) || state.words.length === 0) {
       flashcardSummary.textContent = "Nhập từ vựng hoặc tạo truyện trước khi tạo thẻ.";
@@ -1567,7 +2613,10 @@
           word,
           meaning,
           intervalDays: 0,
-          easeFactor: 2.3,
+          easeFactor: 2.5,
+          repetitions: 0,
+          lapses: 0,
+          reviewCount: 0,
           dueAt: new Date().toISOString(),
           lastReviewedAt: "",
         };
@@ -1575,8 +2624,18 @@
         added += 1;
       } else if (!card.meaning || card.meaning.startsWith("Không lấy được")) {
         card.meaning = meaning;
+        card.easeFactor = Number.isFinite(card.easeFactor) ? card.easeFactor : 2.5;
+        card.intervalDays = Number.isFinite(card.intervalDays) ? card.intervalDays : 0;
+        card.repetitions = Number.isFinite(card.repetitions) ? card.repetitions : 0;
+        card.lapses = Number.isFinite(card.lapses) ? card.lapses : 0;
+        card.reviewCount = Number.isFinite(card.reviewCount) ? card.reviewCount : 0;
         refreshed += 1;
       } else {
+        card.easeFactor = Number.isFinite(card.easeFactor) ? card.easeFactor : 2.5;
+        card.intervalDays = Number.isFinite(card.intervalDays) ? card.intervalDays : 0;
+        card.repetitions = Number.isFinite(card.repetitions) ? card.repetitions : 0;
+        card.lapses = Number.isFinite(card.lapses) ? card.lapses : 0;
+        card.reviewCount = Number.isFinite(card.reviewCount) ? card.reviewCount : 0;
         refreshed += 1;
       }
     }
@@ -1632,31 +2691,54 @@
     }
 
     const now = new Date();
-    const interval = Number.isFinite(card.intervalDays) ? card.intervalDays : 0;
-    const ease = Number.isFinite(card.easeFactor) ? card.easeFactor : 2.3;
-    let nextInterval = 1;
-    let nextEase = ease;
+    const previousInterval = Number.isFinite(card.intervalDays) ? card.intervalDays : 0;
+    const previousEase = Number.isFinite(card.easeFactor) ? card.easeFactor : 2.5;
+    const previousRepetitions = Number.isFinite(card.repetitions) ? card.repetitions : 0;
+    const previousLapses = Number.isFinite(card.lapses) ? card.lapses : 0;
+    const quality = level === "easy" ? 5 : level === "good" ? 4 : 3;
 
-    if (level === "hard") {
+    const nextEaseDelta =
+      0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02);
+    const nextEase = Math.max(1.3, Math.min(3.0, previousEase + nextEaseDelta));
+
+    let nextRepetitions = previousRepetitions;
+    let nextInterval = 1;
+    let nextLapses = previousLapses;
+    if (quality < 3) {
+      nextRepetitions = 0;
       nextInterval = 1;
-      nextEase = Math.max(1.3, ease - 0.15);
-    } else if (level === "good") {
-      nextInterval = interval <= 0 ? 1 : Math.max(1, Math.round(interval * ease));
-      nextEase = ease;
+      nextLapses += 1;
     } else {
-      nextInterval = interval <= 0 ? 2 : Math.max(2, Math.round(interval * ease * 1.3));
-      nextEase = Math.min(3.0, ease + 0.05);
+      nextRepetitions += 1;
+      if (nextRepetitions === 1) {
+        nextInterval = 1;
+      } else if (nextRepetitions === 2) {
+        nextInterval = 6;
+      } else {
+        nextInterval = Math.max(2, Math.round(Math.max(previousInterval, 1) * nextEase));
+      }
+      if (quality === 3) {
+        nextInterval = Math.max(1, Math.round(nextInterval * 0.75));
+      } else if (quality === 5) {
+        nextInterval = Math.max(2, Math.round(nextInterval * 1.25));
+      }
     }
 
     const nextDueAt = new Date(now.getTime() + nextInterval * 24 * 60 * 60 * 1000);
     card.intervalDays = nextInterval;
     card.easeFactor = nextEase;
+    card.repetitions = nextRepetitions;
+    card.lapses = nextLapses;
+    card.reviewCount = (Number.isFinite(card.reviewCount) ? card.reviewCount : 0) + 1;
     card.lastReviewedAt = now.toISOString();
     card.dueAt = nextDueAt.toISOString();
 
     state.flashcardCurrentIndex += 1;
     state.flashcardReveal = false;
 
+    recordFlashcardPerformance(level, card.word);
+    addDailyWords(1);
+    addDailyMinutes(1);
     persistFlashcards();
 
     if (state.flashcardCurrentIndex >= state.flashcardQueue.length) {
@@ -1687,7 +2769,7 @@
     state.repeatLoopCompleted = 0;
     syncRepeatUI();
     syncRepeatLoopUI();
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = `Đã đặt A tại câu ${selected + 1}.`;
   }
 
@@ -1710,7 +2792,7 @@
     state.repeatLoopCompleted = 0;
     syncRepeatUI();
     syncRepeatLoopUI();
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = `Đã đặt B tại câu ${selected + 1}.`;
   }
 
@@ -1724,7 +2806,7 @@
     state.repeatLoopCompleted = 0;
     syncRepeatUI();
     syncRepeatLoopUI();
-    persistReadSession();
+    persistReadSession({ force: true });
 
     if (state.repeatEnabled) {
       coverageSummary.textContent = `Đã bật AB Repeat (câu ${state.repeatStartIndex + 1} -> ${state.repeatEndIndex + 1}).`;
@@ -1735,11 +2817,15 @@
 
   function handleClearRepeat() {
     resetRepeatState();
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = "Đã xóa AB Repeat.";
   }
 
   function startReadingAt(index, message) {
+    if (state.availableVoices.length === 0) {
+      loadVoices();
+    }
+
     let startIndex = normalizeSentenceIndex(index);
     if (state.repeatEnabled && hasValidRepeatRange()) {
       const range = getRepeatRange();
@@ -1767,7 +2853,7 @@
     updateReadControls();
     updateReadProgress({ index: startIndex, total: state.readSentenceQueue.length });
     coverageSummary.textContent = message;
-    persistReadSession();
+    persistReadSession({ force: true });
     speakSentenceAt(startIndex, state.readToken);
   }
 
@@ -1787,7 +2873,7 @@
     setActiveSentence(pauseIndex);
     updateReadControls();
     updateReadProgress({ index: pauseIndex, total: state.readSentenceQueue.length });
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = "Đã tạm dừng đọc.";
   }
 
@@ -1808,7 +2894,7 @@
     setActiveSentence(resumeIndex);
     updateReadControls();
     updateReadProgress({ index: resumeIndex, total: state.readSentenceQueue.length });
-    persistReadSession();
+    persistReadSession({ force: true });
     coverageSummary.textContent = "Đã tiếp tục đọc.";
     speakSentenceAt(resumeIndex, state.readToken);
   }
@@ -1826,6 +2912,7 @@
     if (readingInProgress || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
       window.speechSynthesis.cancel();
     }
+    stopSpeechKeepalive();
 
     state.readState = "idle";
     state.currentUtterance = null;
@@ -1841,7 +2928,7 @@
       total: state.readSentenceQueue.length,
       completed: false,
     });
-    persistReadSession();
+    persistReadSession({ force: true });
 
     if (!silent && readingInProgress) {
       coverageSummary.textContent = "Đã dừng đọc.";
@@ -2049,6 +3136,11 @@
       persistReadSession();
     };
 
+    utterance.onboundary = (event) => {
+      if (token !== state.readToken || event.name !== "word") return;
+      highlightWordInSentence(safeIndex, event.charIndex, event.charLength || 0);
+    };
+
     utterance.onend = () => {
       if (token !== state.readToken) {
         return;
@@ -2084,7 +3176,11 @@
       finishReading("Không thể đọc truyện trên trình duyệt này.");
     };
 
+    if (typeof window.speechSynthesis.resume === "function") {
+      window.speechSynthesis.resume();
+    }
     window.speechSynthesis.speak(utterance);
+    startSpeechKeepalive();
   }
 
   function finishReading(message) {
@@ -2105,6 +3201,34 @@
       persistReadSession();
     }
     coverageSummary.textContent = message;
+    stopSpeechKeepalive();
+  }
+
+  let speechKeepaliveId = 0;
+  function startSpeechKeepalive() {
+    stopSpeechKeepalive();
+    speechKeepaliveId = window.setInterval(() => {
+      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+  }
+
+  function stopSpeechKeepalive() {
+    if (speechKeepaliveId) {
+      window.clearInterval(speechKeepaliveId);
+      speechKeepaliveId = 0;
+    }
+  }
+
+  function preWarmSpeechEngine() {
+    try {
+      const warm = new SpeechSynthesisUtterance("");
+      warm.volume = 0;
+      warm.rate = 10;
+      window.speechSynthesis.speak(warm);
+    } catch { }
   }
 
   function setActiveSentence(index) {
@@ -2123,7 +3247,10 @@
     }
 
     newNode.classList.add("active-reading");
-    newNode.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    newNode.scrollIntoView({
+      block: "nearest",
+      behavior: state.readState === "playing" ? "auto" : "smooth",
+    });
   }
 
   function handleSentenceSelection(event) {
@@ -2148,6 +3275,9 @@
         total: state.readSentenceQueue.length,
         completed: false,
       });
+    }
+    if (pronunciationTargetType.value === "selected_sentence" && state.pronunciationExpectedText) {
+      handlePreparePronunciationTarget();
     }
     updateReadControls();
   }
@@ -2289,6 +3419,7 @@
 
   function clearReadSession() {
     state.lastReadSession = null;
+    state.lastReadSessionPersistAt = 0;
     try {
       localStorage.removeItem(READ_SESSION_STORAGE_KEY);
     } catch {
@@ -2297,7 +3428,7 @@
     updateReadControls();
   }
 
-  function persistReadSession() {
+  function persistReadSession(options) {
     if (!state.speechSupported) {
       return;
     }
@@ -2309,6 +3440,17 @@
       state.readState === "playing" ? state.currentSentenceIndex : state.selectedSentenceIndex
     );
     if (position < 0) {
+      return;
+    }
+    const force = options?.force === true;
+    const now = Date.now();
+    const shouldWrite =
+      force ||
+      !Number.isFinite(state.lastReadSessionPersistAt) ||
+      now - state.lastReadSessionPersistAt >= READ_SESSION_PERSIST_THROTTLE_MS ||
+      state.readState !== "playing";
+
+    if (!shouldWrite) {
       return;
     }
 
@@ -2333,10 +3475,10 @@
     state.lastReadSession = session;
     try {
       localStorage.setItem(READ_SESSION_STORAGE_KEY, JSON.stringify(session));
+      state.lastReadSessionPersistAt = now;
     } catch {
       // Ignore localStorage write failure.
     }
-    updateReadControls();
   }
 
   function loadReadSession() {
@@ -2372,6 +3514,7 @@
     storyOutput.classList.remove("empty");
     renderStoryOutput(state.plainStory, state.words);
     renderCoverage(state.words, state.plainStory);
+    updateCollocationsForStory(state.plainStory);
     state.repeatStartIndex = Number.isInteger(state.lastReadSession.repeatStartIndex)
       ? state.lastReadSession.repeatStartIndex
       : -1;
@@ -2381,7 +3524,7 @@
     state.repeatEnabled = state.lastReadSession.repeatEnabled === true;
     state.repeatLoopTarget =
       Number.isInteger(state.lastReadSession.repeatLoopTarget) &&
-      state.lastReadSession.repeatLoopTarget >= 0
+        state.lastReadSession.repeatLoopTarget >= 0
         ? state.lastReadSession.repeatLoopTarget
         : 0;
     state.repeatLoopCompleted = 0;
@@ -2458,8 +3601,17 @@
       readVoice.value = preferred;
       state.selectedVoiceUri = preferred;
     } else {
-      readVoice.value = "";
-      state.selectedVoiceUri = "";
+      const localEnglish = voices.find(
+        (voice) => voice.localService && voice.lang && /^en(-|$)/i.test(voice.lang)
+      );
+      const localFallback = localEnglish || voices.find((voice) => voice.localService) || voices[0];
+      if (localFallback && localFallback.voiceURI) {
+        readVoice.value = localFallback.voiceURI;
+        state.selectedVoiceUri = localFallback.voiceURI;
+      } else {
+        readVoice.value = "";
+        state.selectedVoiceUri = "";
+      }
     }
     updateReadControls();
   }
@@ -2471,11 +3623,26 @@
 
     const selectedUri = readVoice.value || state.selectedVoiceUri;
     if (!selectedUri) {
-      return null;
+      return (
+        state.availableVoices.find(
+          (voice) => voice.localService && voice.lang && /^en(-|$)/i.test(voice.lang)
+        ) ||
+        state.availableVoices.find((voice) => voice.localService) ||
+        state.availableVoices[0] ||
+        null
+      );
     }
 
     const found = state.availableVoices.find((voice) => voice.voiceURI === selectedUri);
-    return found || null;
+    return (
+      found ||
+      state.availableVoices.find(
+        (voice) => voice.localService && voice.lang && /^en(-|$)/i.test(voice.lang)
+      ) ||
+      state.availableVoices.find((voice) => voice.localService) ||
+      state.availableVoices[0] ||
+      null
+    );
   }
 
   function parseVocabulary(rawInput) {
@@ -2527,6 +3694,7 @@
 
   function buildStory(words, tone, length) {
     const selectedTone = toneConfig[tone] || toneConfig.adventure;
+    const level = cefrConfig[cefrLevel ? cefrLevel.value : "b1"] || cefrConfig.b1;
     const targetSentences = Math.max(
       lengthToTargetSentences[length] || lengthToTargetSentences.medium,
       words.length + 7
@@ -2546,30 +3714,39 @@
     const wordTemplates = shuffle([...wordSentenceTemplates]);
     const midpoint = Math.max(1, Math.floor(words.length / 2));
 
-    sentences.push(fillTemplate(pickRandom(selectedTone.openings), context));
-    sentences.push(fillTemplate(pickRandom(selectedTone.details), context));
+    sentences.push(applyCefrLevel(fillTemplate(pickRandom(selectedTone.openings), context), level));
+    sentences.push(applyCefrLevel(fillTemplate(pickRandom(selectedTone.details), context), level));
 
     words.forEach((word, index) => {
       if (index > 0 && index % 2 === 0) {
-        sentences.push(fillTemplate(pickRandom(selectedTone.pressure), context));
+        sentences.push(applyCefrLevel(fillTemplate(pickRandom(selectedTone.pressure), context), level));
       }
 
       if (index === midpoint) {
-        sentences.push(fillTemplate(pickRandom(selectedTone.turningPoints), context));
+        sentences.push(applyCefrLevel(fillTemplate(pickRandom(selectedTone.turningPoints), context), level));
       }
 
       const template = wordTemplates[index % wordTemplates.length];
-      sentences.push(fillTemplate(template, { ...context, word }));
+      sentences.push(applyCefrLevel(fillTemplate(template, { ...context, word }), level));
     });
 
     const fillerPool = [...selectedTone.details, ...selectedTone.pressure];
     while (sentences.length < targetSentences - 1) {
-      sentences.push(fillTemplate(pickRandom(fillerPool), context));
+      sentences.push(applyCefrLevel(fillTemplate(pickRandom(fillerPool), context), level));
     }
 
-    sentences.push(fillTemplate(pickRandom(selectedTone.closings), context));
+    sentences.push(applyCefrLevel(fillTemplate(pickRandom(selectedTone.closings), context), level));
 
     return toParagraphs(sentences, length);
+  }
+
+  function applyCefrLevel(sentence, level) {
+    if (!level || !level.maxWordsPerSentence) return sentence;
+    const words = sentence.split(/\s+/);
+    if (words.length <= level.maxWordsPerSentence) return sentence;
+    const trimmed = words.slice(0, level.maxWordsPerSentence).join(" ");
+    const lastPunct = trimmed.match(/[.!?]$/) ? "" : ".";
+    return trimmed + lastPunct;
   }
 
   function renderCoverage(words, story) {
@@ -2602,14 +3779,21 @@
 
   function renderShelf() {
     shelfList.innerHTML = "";
-
-    if (state.shelf.length === 0) {
-      shelfHint.textContent = "Chưa có truyện nào được lưu.";
+    const filtered = getFilteredShelfEntries();
+    if (filtered.length === 0) {
+      shelfHint.textContent =
+        state.shelf.length === 0
+          ? "Chưa có truyện nào được lưu."
+          : "Không có truyện nào khớp bộ lọc hiện tại.";
       return;
     }
+    const total = state.shelf.length;
+    shelfHint.textContent =
+      filtered.length === total
+        ? `Đã lưu ${total} truyện.`
+        : `Hiển thị ${filtered.length}/${total} truyện theo bộ lọc.`;
 
-    shelfHint.textContent = `Đã lưu ${state.shelf.length} truyện.`;
-    state.shelf.forEach((entry) => {
+    filtered.forEach((entry) => {
       const item = shelfItemTemplate.content.firstElementChild.cloneNode(true);
       item.dataset.id = entry.id;
       item.querySelector(".shelf-title").textContent = entry.title;
@@ -2617,6 +3801,44 @@
       item.querySelector(".shelf-preview").textContent = truncate(entry.story, 180);
       shelfList.appendChild(item);
     });
+  }
+
+  function getFilteredShelfEntries() {
+    const search = normalize(shelfSearchInput.value || "");
+    const toneFilter = shelfToneFilter.value || "all";
+    const lengthFilter = shelfLengthFilter.value || "all";
+    const sortBy = shelfSortBy.value || "newest";
+
+    let items = [...state.shelf];
+
+    if (search) {
+      items = items.filter((entry) => {
+        const title = normalize(entry.title || "");
+        const words = Array.isArray(entry.words) ? normalize(entry.words.join(" ")) : "";
+        const story = normalize(truncate(entry.story || "", 260));
+        return (
+          title.includes(search) || words.includes(search) || story.includes(search)
+        );
+      });
+    }
+
+    if (toneFilter !== "all") {
+      items = items.filter((entry) => entry.tone === toneFilter);
+    }
+
+    if (lengthFilter !== "all") {
+      items = items.filter((entry) => entry.length === lengthFilter);
+    }
+
+    if (sortBy === "oldest") {
+      items.sort((a, b) => Date.parse(a.createdAt || 0) - Date.parse(b.createdAt || 0));
+    } else if (sortBy === "title") {
+      items.sort((a, b) => String(a.title || "").localeCompare(String(b.title || ""), "vi"));
+    } else {
+      items.sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0));
+    }
+
+    return items;
   }
 
   function openStoryFromShelf(id) {
@@ -2639,6 +3861,7 @@
     storyOutput.classList.remove("empty");
     renderStoryOutput(entry.story, entry.words);
     renderCoverage(entry.words, entry.story);
+    updateCollocationsForStory(entry.story);
     coverageSummary.textContent = `Đã mở truyện "${entry.title}" từ tủ sách.`;
     clearPracticeState('Đã mở truyện. Bấm "Tạo bài luyện" để tạo câu hỏi.');
     clearMemoryState("Đã mở truyện. Bấm 'Bắt đầu' để nhớ nhanh.");
@@ -2646,6 +3869,11 @@
     resetFlashcardReviewSession();
     updateFlashcardUI();
     clearSentenceModelOutput();
+    handleClearVariants({ silent: true });
+    resetRetellUI();
+    resetPronunciationState({
+      message: "Đã mở truyện. Nạp mục tiêu để luyện phát âm.",
+    });
   }
 
   function downloadStoryFromShelf(id) {
@@ -2657,6 +3885,13 @@
   }
 
   function deleteStoryFromShelf(id) {
+    const entry = state.shelf.find((item) => item.id === id);
+    if (!entry) {
+      return;
+    }
+    if (!window.confirm(`Xóa truyện "${entry.title}"?`)) {
+      return;
+    }
     state.shelf = state.shelf.filter((item) => item.id !== id);
     persistShelf();
     renderShelf();
@@ -2674,6 +3909,10 @@
     resetFlashcardReviewSession();
     updateFlashcardUI();
     clearSentenceModelOutput();
+    handleClearVariants({ silent: true });
+    clearCollocationState("Tạo truyện rồi bấm Trích cụm từ.");
+    resetRetellUI();
+    resetPronunciationState();
     resetRepeatState();
     updateReadControls();
     updateReadProgress({ reset: true });
@@ -2684,12 +3923,17 @@
     return pattern.test(story);
   }
 
-  function buildPracticeQuestions(story, words, mode) {
+  function buildPracticeQuestions(story, words, mode, options) {
     const storySentences = splitStoryIntoSentences(story.replace(/\n+/g, " "));
     if (!Array.isArray(storySentences) || storySentences.length === 0) {
       return [];
     }
 
+    const adaptiveLevelRaw = Number.isFinite(options?.adaptiveLevel) ? options.adaptiveLevel : 1;
+    const adaptiveLevel = Math.min(5, Math.max(1, Math.round(adaptiveLevelRaw)));
+    const weakWordSet = new Set(
+      Array.isArray(options?.weakWords) ? options.weakWords.map((item) => normalize(item)) : []
+    );
     const uniqueWords = [...new Set(words.map((word) => word.trim()).filter(Boolean))];
     const fallbackWordPool = [
       ...new Set(
@@ -2698,10 +3942,13 @@
           .filter((word) => word.length > 2)
       ),
     ];
-    const selectedQuestions = [];
+    let selectedQuestions = [];
 
     storySentences.forEach((sentence) => {
-      const targetWord = pickPracticeTargetWord(sentence, uniqueWords, fallbackWordPool);
+      const targetWord = pickPracticeTargetWord(sentence, uniqueWords, fallbackWordPool, {
+        weakWordSet,
+        adaptiveLevel,
+      });
       if (!targetWord) {
         return;
       }
@@ -2715,11 +3962,24 @@
         const optionPool = [...new Set([...uniqueWords, ...fallbackWordPool])].filter(
           (candidate) => normalize(candidate) !== normalize(targetWord)
         );
-        const distractors = shuffle(optionPool).slice(0, 3);
+        const hardPool = optionPool.filter((candidate) => {
+          if (adaptiveLevel < 4) {
+            return true;
+          }
+          const normalized = normalize(candidate);
+          return (
+            normalized.charAt(0) === normalize(targetWord).charAt(0) ||
+            Math.abs(candidate.length - targetWord.length) <= 2
+          );
+        });
+        const distractorPool = hardPool.length >= 3 ? hardPool : optionPool;
+        const distractors = shuffle(distractorPool).slice(0, 3);
         selectedQuestions.push({
           id: generateId(),
           type: "multiple_choice",
           answer: targetWord,
+          focusWord: targetWord,
+          difficulty: adaptiveLevel,
           prompt,
           options: shuffle([targetWord, ...distractors]),
         });
@@ -2738,6 +3998,8 @@
             id: generateId(),
             type: "true_false",
             answer: "false",
+            focusWord: targetWord,
+            difficulty: adaptiveLevel,
             prompt: sentence.replace(buildWordPattern(targetWord), replacement),
           });
         } else {
@@ -2745,25 +4007,49 @@
             id: generateId(),
             type: "true_false",
             answer: "true",
+            focusWord: targetWord,
+            difficulty: adaptiveLevel,
             prompt: sentence,
           });
         }
         return;
       }
 
+      const hintSuffix =
+        adaptiveLevel <= 2 ? ` (gợi ý: ${targetWord.charAt(0).toUpperCase()}...)` : "";
       selectedQuestions.push({
         id: generateId(),
         type: "fill_blank",
         answer: targetWord,
-        prompt,
+        focusWord: targetWord,
+        difficulty: adaptiveLevel,
+        prompt: `${prompt}${hintSuffix}`,
       });
     });
+
+    const ratioByLevel = { 1: 0.58, 2: 0.72, 3: 0.86, 4: 1, 5: 1 };
+    const desiredCount = Math.max(
+      4,
+      Math.min(
+        storySentences.length,
+        Math.round(storySentences.length * (ratioByLevel[adaptiveLevel] || 1))
+      )
+    );
+    if (selectedQuestions.length > desiredCount) {
+      selectedQuestions = shuffle(selectedQuestions).slice(0, desiredCount);
+    }
 
     return selectedQuestions;
   }
 
-  function pickPracticeTargetWord(sentence, preferredWords, fallbackWords) {
+  function pickPracticeTargetWord(sentence, preferredWords, fallbackWords, options) {
+    const weakWordSet = options?.weakWordSet || new Set();
+    const adaptiveLevel = Number.isFinite(options?.adaptiveLevel) ? options.adaptiveLevel : 1;
     const fromPreferred = preferredWords.filter((word) => buildWordPattern(word).test(sentence));
+    const weakMatches = fromPreferred.filter((word) => weakWordSet.has(normalize(word)));
+    if (adaptiveLevel >= 3 && weakMatches.length > 0) {
+      return pickRandom(weakMatches);
+    }
     if (fromPreferred.length > 0) {
       return pickRandom(fromPreferred);
     }
@@ -2951,6 +4237,7 @@
       li.className = "practice-item";
       li.dataset.answer = item.answer;
       li.dataset.type = item.type || "fill_blank";
+      li.dataset.word = item.focusWord || item.answer || "";
 
       const prompt = `<p class="practice-prompt"><strong>Câu ${index + 1}:</strong> ${escapeHtml(item.prompt)}</p>`;
       let content = "";
@@ -2994,7 +4281,9 @@
     state.practiceItems = [];
     practiceList.innerHTML = "";
     if (message) {
-      practiceSummary.textContent = message;
+      practiceSummary.textContent = `${message} Adaptive level: ${state.adaptiveLevel}.`;
+    } else {
+      updateAdaptivePracticeUI();
     }
     updatePracticeControls();
   }
@@ -3136,7 +4425,26 @@
         return;
       }
       const parsed = JSON.parse(raw);
-      state.flashcards = Array.isArray(parsed) ? parsed : [];
+      state.flashcards = Array.isArray(parsed)
+        ? parsed
+          .filter((card) => card && typeof card === "object")
+          .map((card) => ({
+            id: card.id || generateId(),
+            word: String(card.word || "").trim(),
+            meaning: String(card.meaning || "").trim(),
+            intervalDays: Number.isFinite(card.intervalDays) ? Math.max(0, card.intervalDays) : 0,
+            easeFactor: Number.isFinite(card.easeFactor) ? Math.max(1.3, card.easeFactor) : 2.5,
+            repetitions: Number.isFinite(card.repetitions) ? Math.max(0, card.repetitions) : 0,
+            lapses: Number.isFinite(card.lapses) ? Math.max(0, card.lapses) : 0,
+            reviewCount: Number.isFinite(card.reviewCount) ? Math.max(0, card.reviewCount) : 0,
+            dueAt:
+              typeof card.dueAt === "string" && Number.isFinite(Date.parse(card.dueAt))
+                ? card.dueAt
+                : new Date().toISOString(),
+            lastReviewedAt: typeof card.lastReviewedAt === "string" ? card.lastReviewedAt : "",
+          }))
+          .filter((card) => card.word)
+        : [];
     } catch {
       state.flashcards = [];
     }
@@ -3148,6 +4456,581 @@
     } catch {
       // Ignore localStorage write failure.
     }
+  }
+
+  function createDefaultProgress() {
+    return {
+      storiesCreated: 0,
+      practice: {
+        attempts: 0,
+        totalCorrect: 0,
+        totalQuestions: 0,
+        lastScores: [],
+      },
+      dictation: {
+        attempts: 0,
+        scoreSum: 0,
+      },
+      retell: {
+        attempts: 0,
+        scoreSum: 0,
+      },
+      pronunciation: {
+        attempts: 0,
+        scoreSum: 0,
+      },
+      flashcard: {
+        reviews: 0,
+        hard: 0,
+        good: 0,
+        easy: 0,
+      },
+      adaptiveLevel: 1,
+      wordStats: {},
+      daily: {},
+    };
+  }
+
+  function createDefaultGoals() {
+    return {
+      minutesPerDay: 20,
+      wordsPerDay: 15,
+    };
+  }
+
+  function getTodayKey() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function ensureTodayProgressEntry() {
+    const today = getTodayKey();
+    if (!state.progress.daily || typeof state.progress.daily !== "object") {
+      state.progress.daily = {};
+    }
+    if (!state.progress.daily[today] || typeof state.progress.daily[today] !== "object") {
+      state.progress.daily[today] = { minutes: 0, words: 0 };
+    }
+    if (!Number.isFinite(state.progress.daily[today].minutes)) {
+      state.progress.daily[today].minutes = 0;
+    }
+    if (!Number.isFinite(state.progress.daily[today].words)) {
+      state.progress.daily[today].words = 0;
+    }
+    return state.progress.daily[today];
+  }
+
+  function sanitizeProgress(raw) {
+    if (!raw || typeof raw !== "object") {
+      return createDefaultProgress();
+    }
+
+    const safe = {
+      storiesCreated: Number.isFinite(raw.storiesCreated) ? Math.max(0, raw.storiesCreated) : 0,
+      practice: {
+        attempts: Number.isFinite(raw.practice?.attempts) ? Math.max(0, raw.practice.attempts) : 0,
+        totalCorrect: Number.isFinite(raw.practice?.totalCorrect) ? Math.max(0, raw.practice.totalCorrect) : 0,
+        totalQuestions: Number.isFinite(raw.practice?.totalQuestions) ? Math.max(0, raw.practice.totalQuestions) : 0,
+        lastScores: Array.isArray(raw.practice?.lastScores)
+          ? raw.practice.lastScores.filter((value) => Number.isFinite(value)).slice(-12)
+          : [],
+      },
+      dictation: {
+        attempts: Number.isFinite(raw.dictation?.attempts) ? Math.max(0, raw.dictation.attempts) : 0,
+        scoreSum: Number.isFinite(raw.dictation?.scoreSum) ? Math.max(0, raw.dictation.scoreSum) : 0,
+      },
+      retell: {
+        attempts: Number.isFinite(raw.retell?.attempts) ? Math.max(0, raw.retell.attempts) : 0,
+        scoreSum: Number.isFinite(raw.retell?.scoreSum) ? Math.max(0, raw.retell.scoreSum) : 0,
+      },
+      pronunciation: {
+        attempts: Number.isFinite(raw.pronunciation?.attempts)
+          ? Math.max(0, raw.pronunciation.attempts)
+          : 0,
+        scoreSum: Number.isFinite(raw.pronunciation?.scoreSum)
+          ? Math.max(0, raw.pronunciation.scoreSum)
+          : 0,
+      },
+      flashcard: {
+        reviews: Number.isFinite(raw.flashcard?.reviews) ? Math.max(0, raw.flashcard.reviews) : 0,
+        hard: Number.isFinite(raw.flashcard?.hard) ? Math.max(0, raw.flashcard.hard) : 0,
+        good: Number.isFinite(raw.flashcard?.good) ? Math.max(0, raw.flashcard.good) : 0,
+        easy: Number.isFinite(raw.flashcard?.easy) ? Math.max(0, raw.flashcard.easy) : 0,
+      },
+      adaptiveLevel: Number.isFinite(raw.adaptiveLevel)
+        ? Math.min(5, Math.max(1, Math.round(raw.adaptiveLevel)))
+        : 1,
+      wordStats: {},
+      daily: {},
+    };
+
+    if (raw.wordStats && typeof raw.wordStats === "object") {
+      Object.entries(raw.wordStats).forEach(([word, stat]) => {
+        if (!word || !stat || typeof stat !== "object") {
+          return;
+        }
+        safe.wordStats[normalize(word)] = {
+          correct: Number.isFinite(stat.correct) ? Math.max(0, stat.correct) : 0,
+          wrong: Number.isFinite(stat.wrong) ? Math.max(0, stat.wrong) : 0,
+        };
+      });
+    }
+
+    if (raw.daily && typeof raw.daily === "object") {
+      Object.entries(raw.daily).forEach(([day, stat]) => {
+        if (!day || !stat || typeof stat !== "object") {
+          return;
+        }
+        safe.daily[day] = {
+          minutes: Number.isFinite(stat.minutes) ? Math.max(0, stat.minutes) : 0,
+          words: Number.isFinite(stat.words) ? Math.max(0, stat.words) : 0,
+        };
+      });
+    }
+
+    return safe;
+  }
+
+  function loadProgressData() {
+    try {
+      const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+      if (!raw) {
+        state.progress = createDefaultProgress();
+        state.adaptiveLevel = 1;
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      state.progress = sanitizeProgress(parsed);
+      state.adaptiveLevel = state.progress.adaptiveLevel || 1;
+    } catch {
+      state.progress = createDefaultProgress();
+      state.adaptiveLevel = 1;
+    }
+  }
+
+  function persistProgressData() {
+    try {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(state.progress));
+    } catch {
+      // Ignore progress write failure.
+    }
+  }
+
+  function loadGoalData() {
+    try {
+      const raw = localStorage.getItem(GOAL_STORAGE_KEY);
+      if (!raw) {
+        state.goals = createDefaultGoals();
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      const minutes = Number.isFinite(parsed?.minutesPerDay)
+        ? Math.max(5, Math.round(parsed.minutesPerDay))
+        : 20;
+      const words = Number.isFinite(parsed?.wordsPerDay)
+        ? Math.max(5, Math.round(parsed.wordsPerDay))
+        : 15;
+      state.goals = { minutesPerDay: minutes, wordsPerDay: words };
+    } catch {
+      state.goals = createDefaultGoals();
+    }
+  }
+
+  function persistGoalData() {
+    try {
+      localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(state.goals));
+    } catch {
+      // Ignore goal write failure.
+    }
+  }
+
+  function addDailyMinutes(minutes) {
+    if (!Number.isFinite(minutes) || minutes <= 0) {
+      return;
+    }
+    const today = ensureTodayProgressEntry();
+    today.minutes += Math.round(minutes);
+    persistProgressData();
+    updateGoalUI();
+    updateDashboard();
+  }
+
+  function addDailyWords(words) {
+    if (!Number.isFinite(words) || words <= 0) {
+      return;
+    }
+    const today = ensureTodayProgressEntry();
+    today.words += Math.round(words);
+    persistProgressData();
+    updateGoalUI();
+    updateDashboard();
+  }
+
+  function recordSessionMinutes() {
+    const now = Date.now();
+    if (!Number.isFinite(state.sessionStartedAt)) {
+      state.sessionStartedAt = now;
+      return;
+    }
+    const deltaMinutes = Math.floor((now - state.sessionStartedAt) / 60000);
+    if (deltaMinutes > 0) {
+      addDailyMinutes(deltaMinutes);
+    }
+    state.sessionStartedAt = now;
+  }
+
+  function recordStoryGeneration(wordCount) {
+    state.progress.storiesCreated += 1;
+    if (Number.isFinite(wordCount) && wordCount > 0) {
+      addDailyWords(Math.min(wordCount, 12));
+    }
+    addDailyMinutes(2);
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function updateWordStats(word, correct) {
+    const normalized = normalize(word || "");
+    if (!normalized) {
+      return;
+    }
+    if (!state.progress.wordStats[normalized]) {
+      state.progress.wordStats[normalized] = { correct: 0, wrong: 0 };
+    }
+    if (correct) {
+      state.progress.wordStats[normalized].correct += 1;
+    } else {
+      state.progress.wordStats[normalized].wrong += 1;
+    }
+  }
+
+  function recordPracticePerformance(correct, total, percent, wordFeedback) {
+    state.progress.practice.attempts += 1;
+    state.progress.practice.totalCorrect += Math.max(0, correct || 0);
+    state.progress.practice.totalQuestions += Math.max(0, total || 0);
+    state.progress.practice.lastScores.push(percent);
+    state.progress.practice.lastScores = state.progress.practice.lastScores.slice(-12);
+
+    if (Array.isArray(wordFeedback)) {
+      wordFeedback.forEach((item) => {
+        updateWordStats(item.word, item.correct === true);
+      });
+    }
+
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function recordDictationPerformance(score) {
+    state.progress.dictation.attempts += 1;
+    state.progress.dictation.scoreSum += Math.max(0, score || 0);
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function recordRetellPerformance(score, vocabCoverage) {
+    state.progress.retell.attempts += 1;
+    state.progress.retell.scoreSum += Math.max(0, score || 0);
+    if (Number.isFinite(vocabCoverage) && Array.isArray(state.words)) {
+      state.words.forEach((word) => {
+        const hit = hasWord(retellInput.value, word);
+        updateWordStats(word, hit);
+      });
+    }
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function recordPronunciationPerformance(score) {
+    state.progress.pronunciation.attempts += 1;
+    state.progress.pronunciation.scoreSum += Math.max(0, score || 0);
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function recordFlashcardPerformance(level, word) {
+    state.progress.flashcard.reviews += 1;
+    if (level === "hard") {
+      state.progress.flashcard.hard += 1;
+      updateWordStats(word, false);
+    } else if (level === "easy") {
+      state.progress.flashcard.easy += 1;
+      updateWordStats(word, true);
+    } else {
+      state.progress.flashcard.good += 1;
+      updateWordStats(word, true);
+    }
+    persistProgressData();
+    updateDashboard();
+  }
+
+  function updateAdaptiveLevel(percent) {
+    if (!Number.isFinite(percent)) {
+      return;
+    }
+    if (percent >= 90) {
+      state.adaptiveLevel = Math.min(5, state.adaptiveLevel + 1);
+    } else if (percent <= 58) {
+      state.adaptiveLevel = Math.max(1, state.adaptiveLevel - 1);
+    }
+    state.progress.adaptiveLevel = state.adaptiveLevel;
+    persistProgressData();
+    updateDashboard();
+    updateAdaptivePracticeUI();
+  }
+
+  function updateAdaptivePracticeUI() {
+    if (Array.isArray(state.practiceItems) && state.practiceItems.length > 0) {
+      return;
+    }
+    const levelLabel =
+      state.adaptiveLevel <= 2
+        ? "Dễ"
+        : state.adaptiveLevel === 3
+          ? "Trung bình"
+          : "Khó";
+    if (!state.plainStory) {
+      practiceSummary.textContent = `Adaptive level hiện tại: ${state.adaptiveLevel} (${levelLabel}).`;
+      return;
+    }
+    practiceSummary.textContent = `Sẵn sàng tạo bài luyện | Adaptive level: ${state.adaptiveLevel} (${levelLabel}).`;
+  }
+
+  function getWeakWords(limit) {
+    const entries = Object.entries(state.progress.wordStats || {})
+      .map(([word, stat]) => {
+        const correct = Number.isFinite(stat.correct) ? stat.correct : 0;
+        const wrong = Number.isFinite(stat.wrong) ? stat.wrong : 0;
+        const attempts = correct + wrong;
+        const accuracy = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+        return { word, correct, wrong, attempts, accuracy };
+      })
+      .filter((item) => item.attempts > 0)
+      .sort((a, b) => {
+        if (b.wrong !== a.wrong) {
+          return b.wrong - a.wrong;
+        }
+        if (a.accuracy !== b.accuracy) {
+          return a.accuracy - b.accuracy;
+        }
+        return b.attempts - a.attempts;
+      });
+
+    return entries.slice(0, Math.max(1, limit || 5));
+  }
+
+  function computeStreakDays() {
+    const keys = Object.keys(state.progress.daily || {})
+      .filter((key) => /^\d{4}-\d{2}-\d{2}$/.test(key))
+      .sort();
+    if (keys.length === 0) {
+      return 0;
+    }
+
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+
+    const todayKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
+    const todayData = state.progress.daily[todayKey];
+    const todayActive = todayData && ((todayData.minutes || 0) > 0 || (todayData.words || 0) > 0);
+    if (!todayActive) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    for (; ;) {
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
+      const day = state.progress.daily[key];
+      const active = day && ((day.minutes || 0) > 0 || (day.words || 0) > 0);
+      if (!active) {
+        break;
+      }
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  function updateDashboard() {
+    const totalPracticeQuestions = state.progress.practice.totalQuestions || 0;
+    const practiceAverage = totalPracticeQuestions > 0
+      ? Math.round((state.progress.practice.totalCorrect / totalPracticeQuestions) * 100)
+      : 0;
+    const retellAverage = state.progress.retell.attempts > 0
+      ? Math.round(state.progress.retell.scoreSum / state.progress.retell.attempts)
+      : 0;
+    const pronunciationAverage = state.progress.pronunciation.attempts > 0
+      ? Math.round(state.progress.pronunciation.scoreSum / state.progress.pronunciation.attempts)
+      : 0;
+    const retentionAverage =
+      retellAverage > 0 && pronunciationAverage > 0
+        ? Math.round((retellAverage + pronunciationAverage) / 2)
+        : Math.max(retellAverage, pronunciationAverage, 0);
+
+    dashStoriesValue.textContent = String(state.progress.storiesCreated || 0);
+    dashPracticeValue.textContent = `${practiceAverage}%`;
+    dashFlashcardValue.textContent = String(state.progress.flashcard.reviews || 0);
+    dashRetentionValue.textContent = `${retentionAverage}%`;
+    dashStreakValue.textContent = String(computeStreakDays());
+
+    const weakWords = getWeakWords(8);
+    dashWeakWords.innerHTML = "";
+    if (weakWords.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "Chưa có dữ liệu lỗi.";
+      dashWeakWords.appendChild(li);
+      return;
+    }
+
+    weakWords.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = `${item.word} (${item.accuracy}%)`;
+      dashWeakWords.appendChild(li);
+    });
+  }
+
+  function updateGoalUI() {
+    const today = ensureTodayProgressEntry();
+    const minuteTarget = Math.max(
+      1,
+      Number.isFinite(state.goals.minutesPerDay) ? state.goals.minutesPerDay : 20
+    );
+    const wordTarget = Math.max(
+      1,
+      Number.isFinite(state.goals.wordsPerDay) ? state.goals.wordsPerDay : 15
+    );
+
+    dailyMinutesGoal.value = String(minuteTarget);
+    dailyWordsGoal.value = String(wordTarget);
+
+    const minutePercent = Math.min(100, Math.round((today.minutes / minuteTarget) * 100));
+    const wordPercent = Math.min(100, Math.round((today.words / wordTarget) * 100));
+
+    goalMinuteProgress.value = minutePercent;
+    goalWordsProgress.value = wordPercent;
+    goalMinuteText.textContent = `Phút học: ${today.minutes}/${minuteTarget}`;
+    goalWordsText.textContent = `Từ đã ôn: ${today.words}/${wordTarget}`;
+
+    if (today.minutes >= minuteTarget && today.words >= wordTarget) {
+      dailyGoalSummary.textContent = "Đã hoàn thành đầy đủ mục tiêu hôm nay.";
+      return;
+    }
+
+    const minuteLeft = Math.max(0, minuteTarget - today.minutes);
+    const wordLeft = Math.max(0, wordTarget - today.words);
+    dailyGoalSummary.textContent = `Còn ${minuteLeft} phút và ${wordLeft} từ để hoàn thành mục tiêu hôm nay.`;
+  }
+
+  function handleSaveGoals() {
+    const minutes = Number.parseInt(dailyMinutesGoal.value, 10);
+    const words = Number.parseInt(dailyWordsGoal.value, 10);
+    state.goals.minutesPerDay = Number.isInteger(minutes) ? Math.max(5, minutes) : 20;
+    state.goals.wordsPerDay = Number.isInteger(words) ? Math.max(5, words) : 15;
+    persistGoalData();
+    updateGoalUI();
+    coverageSummary.textContent = "Đã lưu mục tiêu hằng ngày.";
+  }
+
+  function handleResetTodayGoalProgress() {
+    const today = ensureTodayProgressEntry();
+    today.minutes = 0;
+    today.words = 0;
+    persistProgressData();
+    updateGoalUI();
+    updateDashboard();
+    coverageSummary.textContent = "Đã reset tiến độ hôm nay.";
+  }
+
+  function handleExportData() {
+    const translateObject = {};
+    state.translateCache.forEach((value, key) => {
+      translateObject[key] = value;
+    });
+
+    const payload = {
+      version: APP_EXPORT_VERSION,
+      exportedAt: new Date().toISOString(),
+      shelf: state.shelf,
+      flashcards: state.flashcards,
+      translateCache: translateObject,
+      progress: state.progress,
+      goals: state.goals,
+    };
+
+    const fileName = `story-builder-backup-${getTodayKey()}.json`;
+    downloadText(JSON.stringify(payload, null, 2), fileName);
+    coverageSummary.textContent = "Đã export toàn bộ dữ liệu học.";
+  }
+
+  async function handleImportDataFile(event) {
+    const file = event.target?.files && event.target.files[0] ? event.target.files[0] : null;
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      applyImportedData(parsed);
+      coverageSummary.textContent = `Đã import dữ liệu từ ${file.name}.`;
+    } catch {
+      coverageSummary.textContent = "Import thất bại. File JSON không hợp lệ.";
+    } finally {
+      importDataInput.value = "";
+    }
+  }
+
+  function applyImportedData(payload) {
+    if (!payload || typeof payload !== "object") {
+      return;
+    }
+
+    if (Array.isArray(payload.shelf)) {
+      state.shelf = payload.shelf;
+      persistShelf();
+    }
+
+    if (Array.isArray(payload.flashcards)) {
+      state.flashcards = payload.flashcards;
+      persistFlashcards();
+      loadFlashcards();
+    }
+
+    if (payload.translateCache && typeof payload.translateCache === "object") {
+      state.translateCache = new Map();
+      Object.entries(payload.translateCache).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          state.translateCache.set(key, value);
+        }
+      });
+      persistTranslateCache();
+    }
+
+    state.progress = sanitizeProgress(payload.progress || createDefaultProgress());
+    state.adaptiveLevel = state.progress.adaptiveLevel || 1;
+    persistProgressData();
+
+    const importedGoals = payload.goals;
+    if (importedGoals && typeof importedGoals === "object") {
+      state.goals = {
+        minutesPerDay: Number.isFinite(importedGoals.minutesPerDay)
+          ? Math.max(5, Math.round(importedGoals.minutesPerDay))
+          : 20,
+        wordsPerDay: Number.isFinite(importedGoals.wordsPerDay)
+          ? Math.max(5, Math.round(importedGoals.wordsPerDay))
+          : 15,
+      };
+      persistGoalData();
+    }
+
+    renderShelf();
+    updateFlashcardUI();
+    updateDashboard();
+    updateGoalUI();
+    updateAdaptivePracticeUI();
   }
 
   function getDueFlashcards() {
@@ -3235,7 +5118,9 @@
     flashcardCard.classList.remove("empty");
     flashcardCard.textContent = current.word || "(no word)";
     const currentPosition = state.flashcardCurrentIndex + 1;
-    flashcardSummary.textContent = `Đang ôn thẻ ${currentPosition}/${queueCount}. Đến hạn: ${dueCount}.`;
+    const intervalLabel = Number.isFinite(current.intervalDays) ? current.intervalDays : 0;
+    const easeLabel = Number.isFinite(current.easeFactor) ? current.easeFactor.toFixed(2) : "2.50";
+    flashcardSummary.textContent = `Đang ôn thẻ ${currentPosition}/${queueCount}. Đến hạn: ${dueCount}. I=${intervalLabel} ngày, EF=${easeLabel}.`;
     flashcardMeaning.textContent = state.flashcardReveal
       ? `Nghĩa: ${current.meaning || "(chưa có nghĩa)"}`
       : "Bấm 'Hiện nghĩa' trước khi chấm mức độ.";
@@ -3527,6 +5412,282 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
   }
+
+  /* ─── Improvement Functions ─── */
+
+  function updateVocabCount() {
+    if (!vocabCount) return;
+    const words = parseVocabulary(vocabInput.value);
+    vocabCount.textContent = `${words.length} từ`;
+  }
+
+  function updateStoryStats(story) {
+    if (!storyStats) return;
+    if (!story) {
+      storyStats.textContent = "";
+      return;
+    }
+    const wordCount = story.split(/\s+/).filter(Boolean).length;
+    const readingMinutes = Math.max(1, Math.round(wordCount / 200));
+    storyStats.textContent = `📖 ${wordCount} từ • ⏱ ~${readingMinutes} phút đọc`;
+  }
+
+  function handleScrollForBackToTop() {
+    if (!backToTopBtn) return;
+    if (window.scrollY > 400) {
+      backToTopBtn.classList.remove("hidden");
+    } else {
+      backToTopBtn.classList.add("hidden");
+    }
+  }
+
+  let confettiTriggered = false;
+  function checkAndLaunchConfetti() {
+    if (confettiTriggered || !confettiCanvas) return;
+    const today = getTodayKey();
+    const daily = state.progress.daily[today];
+    if (!daily) return;
+    const minuteGoal = state.goals.minuteGoal || 15;
+    const wordGoal = state.goals.wordGoal || 20;
+    if ((daily.minutes || 0) >= minuteGoal && (daily.words || 0) >= wordGoal) {
+      confettiTriggered = true;
+      launchConfetti();
+    }
+  }
+
+  function launchConfetti() {
+    if (!confettiCanvas) return;
+    const colors = ["#00e2ff", "#6654ff", "#ff668d", "#52ffc4", "#ffd166", "#a78bfa"];
+    for (let i = 0; i < 50; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.top = `${Math.random() * -20}%`;
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = `${Math.random() * 0.6}s`;
+      piece.style.animationDuration = `${1.5 + Math.random() * 1.2}s`;
+      confettiCanvas.appendChild(piece);
+    }
+    window.setTimeout(() => {
+      confettiCanvas.innerHTML = "";
+    }, 3200);
+  }
+
+  let draftSaveTimerId = 0;
+  function scheduleDraftSave() {
+    window.clearTimeout(draftSaveTimerId);
+    draftSaveTimerId = window.setTimeout(saveDraft, 1500);
+  }
+
+  function saveDraft() {
+    try {
+      const draft = {
+        vocabText: vocabInput.value,
+        title: storyTitle.value,
+        story: state.plainStory || "",
+        words: state.words || [],
+        tone: state.tone,
+        length: state.length,
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch { }
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft || typeof draft !== "object") return;
+      if (vocabInput.value.trim()) return;
+      if (draft.vocabText) vocabInput.value = draft.vocabText;
+      if (draft.title) storyTitle.value = draft.title;
+      if (draft.story) {
+        state.plainStory = draft.story;
+        state.words = Array.isArray(draft.words) ? draft.words : [];
+        state.tone = draft.tone || state.tone;
+        state.length = draft.length || state.length;
+        storyOutput.classList.remove("empty");
+        renderStoryOutput(state.plainStory, state.words);
+        renderCoverage(state.words, state.plainStory);
+        updateStoryStats(state.plainStory);
+        setSelectedTone(state.tone);
+        storyLength.value = state.length;
+      }
+    } catch { }
+  }
+
+  /* ─── Integrate confetti into goal UI ─── */
+  const originalUpdateGoalUI = updateGoalUI;
+  updateGoalUI = function () {
+    originalUpdateGoalUI();
+    checkAndLaunchConfetti();
+  };
+
+  /* ─── Feature 1: Theme Toggle ─── */
+  function handleThemeToggle() {
+    const isLight = document.body.classList.toggle("light-theme");
+    themeToggleBtn.textContent = isLight ? "☀️" : "🌙";
+    try { localStorage.setItem(THEME_STORAGE_KEY, isLight ? "light" : "dark"); } catch { }
+  }
+
+  function loadTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === "light") {
+        document.body.classList.add("light-theme");
+        if (themeToggleBtn) themeToggleBtn.textContent = "☀️";
+      }
+    } catch { }
+  }
+
+  /* ─── Feature 2: Word Highlight During Reading ─── */
+  function highlightWordInSentence(sentenceIndex, charIndex, charLength) {
+    clearWordHighlight();
+    const sentenceNodes = storyOutput.querySelectorAll(".story-sentence");
+    const sentenceNode = sentenceNodes[sentenceIndex];
+    if (!sentenceNode) return;
+
+    const marks = sentenceNode.querySelectorAll("mark.story-word");
+    const textContent = sentenceNode.textContent || "";
+    if (charIndex >= textContent.length) return;
+
+    const targetWord = textContent.substring(charIndex, charIndex + (charLength || 1)).trim().toLowerCase();
+    if (!targetWord) return;
+
+    for (const mark of marks) {
+      const markText = (mark.textContent || "").trim().toLowerCase();
+      if (markText === targetWord || markText.includes(targetWord)) {
+        mark.classList.add("word-active-reading");
+        return;
+      }
+    }
+  }
+
+  function clearWordHighlight() {
+    const active = storyOutput.querySelector(".word-active-reading");
+    if (active) active.classList.remove("word-active-reading");
+  }
+
+  /* ─── Feature 3: PDF Export ─── */
+  function handleExportPDF() {
+    if (!state.plainStory) {
+      renderMessage("Tạo truyện trước khi xuất PDF.");
+      return;
+    }
+    window.print();
+  }
+
+  /* ─── Feature 4: Quiz Timer ─── */
+  let quizTimerIntervalId = 0;
+  let quizTimerRemaining = 0;
+
+  function startQuizTimer() {
+    stopQuizTimer();
+    if (!quizTimerSelect || !quizTimerDisplay) return;
+    const seconds = parseInt(quizTimerSelect.value, 10) || 0;
+    if (seconds <= 0) {
+      quizTimerDisplay.classList.add("hidden");
+      return;
+    }
+    quizTimerRemaining = seconds;
+    quizTimerDisplay.classList.remove("hidden");
+    quizTimerDisplay.classList.remove("urgent");
+    updateQuizTimerDisplay();
+    quizTimerIntervalId = window.setInterval(() => {
+      quizTimerRemaining -= 1;
+      if (quizTimerRemaining <= 10) {
+        quizTimerDisplay.classList.add("urgent");
+      }
+      if (quizTimerRemaining <= 0) {
+        stopQuizTimer();
+        handleCheckPractice();
+        return;
+      }
+      updateQuizTimerDisplay();
+    }, 1000);
+  }
+
+  function stopQuizTimer() {
+    if (quizTimerIntervalId) {
+      window.clearInterval(quizTimerIntervalId);
+      quizTimerIntervalId = 0;
+    }
+    if (quizTimerDisplay) {
+      quizTimerDisplay.classList.add("hidden");
+      quizTimerDisplay.classList.remove("urgent");
+    }
+  }
+
+  function updateQuizTimerDisplay() {
+    if (!quizTimerDisplay) return;
+    const m = Math.floor(quizTimerRemaining / 60);
+    const s = quizTimerRemaining % 60;
+    quizTimerDisplay.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  /* ─── Feature 5: Word Mastery Tracker ─── */
+  let wordMasteryData = {};
+
+  function loadWordMastery() {
+    try {
+      const raw = localStorage.getItem(MASTERY_STORAGE_KEY);
+      if (raw) wordMasteryData = JSON.parse(raw) || {};
+    } catch { wordMasteryData = {}; }
+  }
+
+  function persistWordMastery() {
+    try { localStorage.setItem(MASTERY_STORAGE_KEY, JSON.stringify(wordMasteryData)); } catch { }
+  }
+
+  function updateWordMastery(wordFeedback) {
+    if (!Array.isArray(wordFeedback)) return;
+    for (const item of wordFeedback) {
+      const word = (item.word || "").toLowerCase().trim();
+      if (!word) continue;
+      if (!wordMasteryData[word]) {
+        wordMasteryData[word] = { seen: 0, correct: 0 };
+      }
+      wordMasteryData[word].seen += 1;
+      if (item.correct) wordMasteryData[word].correct += 1;
+    }
+    persistWordMastery();
+    if (state.words && state.words.length > 0 && state.plainStory) {
+      renderCoverage(state.words, state.plainStory);
+    }
+  }
+
+  function getMasteryLevel(word) {
+    const data = wordMasteryData[(word || "").toLowerCase().trim()];
+    if (!data || data.seen === 0) return "new";
+    if (data.correct >= 3 && data.correct / data.seen >= 0.8) return "known";
+    return "learning";
+  }
+
+  function getMasteryLabel(level) {
+    if (level === "known") return "Thành thạo";
+    if (level === "learning") return "Đang học";
+    return "Mới";
+  }
+
+  /* ─── Patch renderCoverage to show mastery badges ─── */
+  const originalRenderCoverage = renderCoverage;
+  renderCoverage = function (words, story) {
+    originalRenderCoverage(words, story);
+    if (!words || words.length === 0) return;
+    const items = coverageList.querySelectorAll(".coverage-item");
+    items.forEach((item, index) => {
+      if (index >= words.length) return;
+      const word = words[index];
+      const level = getMasteryLevel(word);
+      const existing = item.querySelector(".mastery-badge");
+      if (existing) existing.remove();
+      const badge = document.createElement("span");
+      badge.className = `mastery-badge mastery-${level}`;
+      badge.textContent = getMasteryLabel(level);
+      item.appendChild(badge);
+    });
+  };
 })();
 
 
